@@ -1,22 +1,31 @@
 package com.othello.game.core;
 
+import com.othello.game.utils.OthelloConstants;
 import com.othello.game.utils.Position;
 import com.othello.game.utils.Step;
 
 import java.util.ArrayList;
 
-public class OthelloCore {
-    public final int WHITE = 1;
-    public final int BLACK = -1;
+public abstract class OthelloCore {
+    public final int WHITE = OthelloConstants.DiscType.WHITE;
+    public final int BLACK = OthelloConstants.DiscType.BLACK;
+    public final int BLANK = OthelloConstants.DiscType.BLANK;
 
-    private int[][] board; // 可用区间：(1,1)-(8,8)
-    private int turnColor;
-    private boolean over;
+    int[][] board; // 可用区间：(1,1)-(8,8)
+    int turnColor;
+    boolean over;
 
     public void setBoard(int[][] board) {
         for(int i = 1; i <= 8; ++i)
             for(int j = 1; j <= 8; ++j)
                 this.board[i][j] = board[i][j];
+    }
+
+    OthelloCore() {
+        this.turnColor = BLACK;
+        board = new int[10][10];
+        board[4][4] = board[5][5] = WHITE;
+        board[4][5] = board[5][4] = BLACK;
     }
 
     OthelloCore(int turnColor) { // 默认棋盘
@@ -76,35 +85,22 @@ public class OthelloCore {
         return getValidPosition(turnColor);
     }
 
+    public abstract boolean addStep(Step step);
+
     public boolean isOver() {
         return over;
     }
 
-    public boolean addStep(Step A) {
-        assert A.getColor() == turnColor;
-        if(!isValidPosition(A.getPosition(), A.getColor()))
-            return false;
-        final int[] dx = {1, 1, 1, 0, 0, -1, -1, -1};
-        final int[] dy = {1, 0, -1, 1, -1, 1, 0, -1};
-        int x = A.getPosition().getX();
-        int y = A.getPosition().getY();
-        for(int d = 0; d < 8; ++d) {
-            int tx = x + dx[d], ty = y + dy[d];
-            if(tx >= 1 && tx <= 8 && ty >= 1 && ty <= 8 && getBoard()[tx][ty] + turnColor == 0) {
-                while(tx >= 1 && tx <= 8 && ty >= 1 && ty <= 8 && getBoard()[tx][ty] + turnColor == 0) {
-                    tx += dx[d];
-                    ty += dy[d];
-                }
-                if(tx >= 1 && tx <= 8 && ty >= 1 && ty <= 8 && getBoard()[tx][ty] == turnColor)
-                    while(tx != x || ty != y) {
-                        board[tx][ty] = turnColor;
-                        tx -= dx[d];
-                        ty -= dy[d];
-                    }
-            }
-        }
-        board[x][y] = turnColor;
-        reverseColor();
-        return true;
+    public int getWinner() {
+        if(!over) return 0;
+        int whitePoints = 0, blackPoints = 0;
+        for(int i = 1; i <= 8; ++i)
+            for(int j = 1; j <= 8; ++j)
+                if(board[i][j] == WHITE)
+                    ++whitePoints;
+                else if(board[i][j] == BLACK)
+                    ++blackPoints;
+        if(whitePoints == blackPoints) return BLANK;
+        return whitePoints > blackPoints ? WHITE : BLACK;
     }
 }
