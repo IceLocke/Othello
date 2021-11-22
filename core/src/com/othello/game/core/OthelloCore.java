@@ -2,7 +2,6 @@ package com.othello.game.core;
 
 import com.othello.game.utils.Position;
 import com.othello.game.utils.Step;
-import javafx.geometry.Pos;
 
 import java.util.ArrayList;
 
