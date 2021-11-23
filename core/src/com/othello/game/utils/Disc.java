@@ -51,11 +51,6 @@ public class Disc {
         discID = ++Disc.discCnt;
     }
 
-    public static void rotate(Disc disc) {
-        disc.modelInstance.transform = new Matrix4().setToRotation(1f, 0, 0, 180);
-        disc.modelInstance.calculateTransforms();
-    }
-
     public void rotate() {
         if(upColor == OthelloConstants.DiscType.BLACK)
             modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 180);
