@@ -19,12 +19,16 @@ public class HomeInputProcessor extends InputAdapter {
 
     @Override
     public boolean mouseMoved(int screenX, int screenY) {
+        if (Othello.interfaceType != OthelloConstants.InterfaceType.HOME)
+            return true;
         Othello.menuButtonType = getButtonType(screenX, screenY);
         return true;
     }
 
     @Override
     public boolean touchDown (int x, int y, int pointer, int button) {
+        if (Othello.interfaceType != OthelloConstants.InterfaceType.HOME)
+            return true;
         if (getButtonType(x, y) != 0)
             Othello.menuButtonPressed = true;
         return true;

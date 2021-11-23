@@ -53,6 +53,7 @@ public class Othello extends ApplicationAdapter {
 	public static boolean menuButtonPressed = false;
 
 	protected SpriteBatch batch;
+	protected Texture homeLoading;
 	protected Texture homeDefault;
 	protected Texture homeSingleHighlight;
 	protected Texture homeMultipleHighlight;
@@ -80,16 +81,39 @@ public class Othello extends ApplicationAdapter {
 	// 渲染主菜单
 	public void renderHome() {
 		batch.begin();
-		if (menuButtonType == OthelloConstants.MenuButtonType.NONE)
-			batch.draw(homeDefault, 0f, 0f);
-		if (menuButtonType == OthelloConstants.MenuButtonType.LOCAL_SINGLE_PLAYER)
-			batch.draw(homeSingleHighlight, 0f, 0f);
-		if (menuButtonType == OthelloConstants.MenuButtonType.LOCAL_MULTIPLE_PLAYER)
-			batch.draw(homeMultipleHighlight, 0f, 0f);
-		if (menuButtonType == OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER)
-			batch.draw(homeOnlineHighlight, 0f, 0f);
-		if (menuButtonType == OthelloConstants.MenuButtonType.EXIT)
-			batch.draw(homeExitHighlight, 0f, 0f);
+		switch (menuButtonType) {
+			case OthelloConstants.MenuButtonType.NONE:
+				batch.draw(homeDefault, 0f, 0f);
+				break;
+			case OthelloConstants.MenuButtonType.LOCAL_SINGLE_PLAYER:
+				batch.draw(homeSingleHighlight, 0f, 0f);
+				break;
+			case OthelloConstants.MenuButtonType.LOCAL_MULTIPLE_PLAYER:
+				batch.draw(homeMultipleHighlight, 0f, 0f);
+				break;
+			case OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER:
+				batch.draw(homeOnlineHighlight, 0f, 0f);
+				break;
+			case OthelloConstants.MenuButtonType.EXIT:
+				batch.draw(homeExitHighlight, 0f, 0f);
+				break;
+		}
+		if (menuButtonPressed) {
+			switch (menuButtonType) {
+				case OthelloConstants.MenuButtonType.LOCAL_SINGLE_PLAYER:
+					interfaceType = OthelloConstants.InterfaceType.SINGLE_PLAYER_MENU;
+					break;
+				case OthelloConstants.MenuButtonType.LOCAL_MULTIPLE_PLAYER:
+					interfaceType = OthelloConstants.InterfaceType.MULTIPLE_PLAYER_MENU;
+					break;
+				case OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER:
+					interfaceType = OthelloConstants.InterfaceType.ONLINE_MENU;
+					break;
+				case OthelloConstants.MenuButtonType.EXIT:
+					this.dispose();
+				default: break;
+			}
+		}
 		batch.end();
 	}
 
@@ -106,7 +130,6 @@ public class Othello extends ApplicationAdapter {
 						// 是新的棋子，将新的棋子加入渲染队列
 						ModelInstance newDiscInstance = discInstanceList.get(discList.getDiscListSize());
 						AnimationController newController = discAnimationControllerList.get(discList.getDiscListSize());
-
 						discList.addDisc(new Disc(i, j, newBoard[i][j], newDiscInstance, newController));
 						renderInstanceList.add(newDiscInstance);
 					}
@@ -157,6 +180,12 @@ public class Othello extends ApplicationAdapter {
 	@Override
 	public void create () {
 		interfaceType = OthelloConstants.InterfaceType.HOME;
+		batch = new SpriteBatch();
+
+		homeLoading = new Texture(Gdx.files.internal("menu/home_loading.png"));
+		batch.begin();
+		batch.draw(homeLoading, 0, 0);
+		batch.end();
 
 		/* --- 3D 部分初始化开始 --- */
 
@@ -217,16 +246,15 @@ public class Othello extends ApplicationAdapter {
 
 		/* --- 3D 部分初始化结束 --- */
 
-		/* --- 主菜单 UI 初始化开始 ---*/
+		/* --- 主菜单 UI 初始化开始 --- */
 		homeDefault = new Texture(Gdx.files.internal("menu/home_default.png"));
 		homeSingleHighlight = new Texture(Gdx.files.internal("menu/home_single_highlight.png"));
 		homeMultipleHighlight = new Texture(Gdx.files.internal("menu/home_multiple_highlight.png"));
 		homeOnlineHighlight = new Texture(Gdx.files.internal("menu/home_online_highlight.png"));
 		homeExitHighlight = new Texture(Gdx.files.internal("menu/home_exit_highlight.png"));
 
-		batch = new SpriteBatch();
-
 		Gdx.input.setInputProcessor(new HomeInputProcessor());
+		/* --- 主菜单 UI 初始化结束 --- */
 	}
 
 	@Override
