@@ -39,7 +39,22 @@ public class Othello extends ApplicationAdapter {
 	OthelloGame game;
 	int[][] board;
 
-	public void loadBoard() {
+	public void loadBoard() throws Exception {
+		board = new int[10][10];
+		for (int i = 0; i <= 9; i++) {
+			for (int j = 0; j <= 9; j++) {
+				board[i][j] = OthelloConstants.DiscType.BLANK;
+			}
+		}
+		board[4][4] = board[5][5] = OthelloConstants.DiscType.WHITE;
+		board[4][5] = board[5][4] = OthelloConstants.DiscType.BLACK;
+
+//		for (int i = 0; i <= 9; i++) {
+//			for (int j = 0; j <= 9; j++) {
+//				board[i][j] = game.getNowPlayBoard()[i][j];
+//			}
+//		}
+
 	}
 
 	// 渲染主菜单
