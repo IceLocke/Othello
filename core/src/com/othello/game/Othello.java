@@ -14,8 +14,10 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.loader.G3dModelLoader;
+import com.badlogic.gdx.graphics.g3d.loader.ObjLoader;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.UBJsonReader;
 import com.othello.game.core.OthelloGame;
 import com.othello.game.utils.Disc;
@@ -31,11 +33,14 @@ public class Othello extends ApplicationAdapter {
 
 	public Environment environment;
 
+	public Model frameModel;
+
 	public Model boardModel;
 	public Model discModel;
 	public Model tableModel;
 	public ModelBatch modelBatch;
 
+	public ModelInstance frameInstance;
 	public ModelInstance boardInstance;
 	public ModelInstance tableInstance;
 	public ArrayList<ModelInstance> discInstanceList;
@@ -137,26 +142,33 @@ public class Othello extends ApplicationAdapter {
 
 		// 初始化相机
 		cam = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		cam.position.set(3f, 7f, -4f);
-		cam.lookAt(3f, 0f, -4f);
+		cam.position.set(3f, 7f, 1f);
+		cam.lookAt(3f, 0f, -2.5f);
 		cam.near = 1f;
 		cam.far = 300f;
 		cam.update();
 
 		// 初始化场景
 		environment = new Environment();
-		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
-		environment.add(new PointLight().set(0.8f, 0.8f, 0.8f, 3f, 5f, -5f, 300));
+		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 0f));
+		environment.add(new PointLight().set(0.8f, 0.8f, 0.8f, 3f, 10f, -5f, 1000));
 
 		// 加载棋盘、棋子、桌子模型
 		UBJsonReader jsonReader = new UBJsonReader();
 		ModelLoader loader = new G3dModelLoader(jsonReader);
-		boardModel = loader.loadModel(Gdx.files.internal("models/board.g3db"));
+		ModelLoader objLoader = new ObjLoader();
+		frameModel = objLoader.loadModel(Gdx.files.internal("models/frame.obj"));
+		boardModel = objLoader.loadModel(Gdx.files.internal("models/board.obj"));
 		discModel = loader.loadModel(Gdx.files.internal("models/disc.g3db"));
-		tableModel = loader.loadModel(Gdx.files.internal("models/table.g3db"));
+		tableModel = objLoader.loadModel(Gdx.files.internal("models/wooden_table.obj"));
 
+		frameInstance = new ModelInstance(frameModel);
+		frameInstance.transform = new Matrix4().setToTranslation(0, -0.1f, 0);
+		frameInstance.calculateTransforms();
 		boardInstance = new ModelInstance(boardModel);
 		tableInstance = new ModelInstance(tableModel);
+		tableInstance.transform = new Matrix4().setToTranslation(0, -0.2f, 0);
+		tableInstance.calculateTransforms();
 		discList = new DiscList();
 		discInstanceList = new ArrayList<>();
 		discAnimationControllerList = new ArrayList<>();
@@ -170,6 +182,7 @@ public class Othello extends ApplicationAdapter {
 		// 将桌子和棋盘加入渲染队列
 		renderInstanceList = new ArrayList<ModelInstance>();
 		renderInstanceList.add(tableInstance);
+		renderInstanceList.add(frameInstance);
 		renderInstanceList.add(boardInstance);
 
 		// 初始化棋盘数据
@@ -182,14 +195,12 @@ public class Othello extends ApplicationAdapter {
 			}
 		}
 
-		// 自由控制视角
-		camController = new CameraInputController(cam);
-		Gdx.input.setInputProcessor(camController);
+///
 	}
 
 	@Override
 	public void render () {
-		 camController.update();
+		 // camController.update();
 
 		if (interfaceType == OthelloConstants.InterfaceType.HOME) {
 			renderHome();
