@@ -21,6 +21,7 @@ import com.othello.game.core.OthelloGame;
 import com.othello.game.utils.Disc;
 import com.othello.game.utils.DiscList;
 import com.othello.game.utils.OthelloConstants;
+import jdk.nashorn.internal.runtime.options.OptionTemplate;
 
 import java.util.ArrayList;
 
@@ -32,9 +33,11 @@ public class Othello extends ApplicationAdapter {
 
 	public Model boardModel;
 	public Model discModel;
+	public Model tableModel;
 	public ModelBatch modelBatch;
 
 	public ModelInstance boardInstance;
+	public ModelInstance tableInstance;
 	public ArrayList<ModelInstance> discInstanceList;
 	public ArrayList<AnimationController> discAnimationControllerList;
 	public DiscList discList;
@@ -50,10 +53,16 @@ public class Othello extends ApplicationAdapter {
 
 	public void loadBoard() {
 		for (int i = 0; i <= 9; i++) {
-			for (int j = 0; j <= 9; j++) {
-				board[i][j] = game.getNowPlayBoard()[i][j];
-			}
+			for (int j = 0; j <= 9; j++)
+				newBoard[i][j] = OthelloConstants.DiscType.BLANK;
 		}
+		newBoard[4][4] = newBoard[5][5] = OthelloConstants.DiscType.WHITE;
+		newBoard[4][5] = newBoard[5][4] = OthelloConstants.DiscType.BLACK;
+//		for (int i = 0; i <= 9; i++) {
+//			for (int j = 0; j <= 9; j++) {
+//				newBoard[i][j] = game.getNowPlayBoard()[i][j];
+//			}
+//		}
 	}
 
 	// 渲染主菜单
@@ -71,7 +80,7 @@ public class Othello extends ApplicationAdapter {
 			for (int j = 1; j <= 8; j++) {
 				if (board[i][j] != newBoard[i][j]) {
 					if (board[i][j] == OthelloConstants.DiscType.BLANK) {
-						// 是新的棋子，将新的棋子加入渲染列表
+						// 是新的棋子，将新的棋子加入渲染队列
 						ModelInstance newDiscInstance = discInstanceList.get(discList.getDiscListSize());
 						AnimationController newController = discAnimationControllerList.get(discList.getDiscListSize());
 
@@ -124,7 +133,7 @@ public class Othello extends ApplicationAdapter {
 
 	@Override
 	public void create () {
-		interfaceType = OthelloConstants.InterfaceType.HOME;
+		interfaceType = OthelloConstants.InterfaceType.GAME;
 
 		// 初始化相机
 		cam = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -139,12 +148,15 @@ public class Othello extends ApplicationAdapter {
 		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
 		environment.add(new PointLight().set(0.8f, 0.8f, 0.8f, 3f, 5f, -5f, 300));
 
-		// 加载棋盘和棋子模型
+		// 加载棋盘、棋子、桌子模型
 		UBJsonReader jsonReader = new UBJsonReader();
 		ModelLoader loader = new G3dModelLoader(jsonReader);
 		boardModel = loader.loadModel(Gdx.files.internal("models/board.g3db"));
 		discModel = loader.loadModel(Gdx.files.internal("models/disc.g3db"));
+		tableModel = loader.loadModel(Gdx.files.internal("models/table.g3db"));
+
 		boardInstance = new ModelInstance(boardModel);
+		tableInstance = new ModelInstance(tableModel);
 		discList = new DiscList();
 		discInstanceList = new ArrayList<>();
 		discAnimationControllerList = new ArrayList<>();
@@ -154,9 +166,11 @@ public class Othello extends ApplicationAdapter {
 			discAnimationControllerList.add(new AnimationController(discInstance));
 		}
 		modelBatch = new ModelBatch();
+
+		// 将桌子和棋盘加入渲染队列
 		renderInstanceList = new ArrayList<ModelInstance>();
+		renderInstanceList.add(tableInstance);
 		renderInstanceList.add(boardInstance);
-		discAnimationControllerList.get(0).setAnimation("disc|WhiteToBlack");
 
 		// 初始化棋盘数据
 		board = new int[10][10];
@@ -167,17 +181,24 @@ public class Othello extends ApplicationAdapter {
 				newBoard[i][j] = OthelloConstants.DiscType.BLANK;
 			}
 		}
+
+		// 自由控制视角
+		camController = new CameraInputController(cam);
+		Gdx.input.setInputProcessor(camController);
 	}
 
 	@Override
 	public void render () {
-		// camController.update();
+		 camController.update();
 
-		if (interfaceType == OthelloConstants.InterfaceType.HOME)
+		if (interfaceType == OthelloConstants.InterfaceType.HOME) {
 			renderHome();
+		}
 
-		if (interfaceType == OthelloConstants.InterfaceType.GAME)
+		if (interfaceType == OthelloConstants.InterfaceType.GAME) {
 			renderGame();
+		}
+
 	}
 	
 	@Override
