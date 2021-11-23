@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.loader.ObjLoader;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.utils.ScreenUtils;
@@ -26,15 +27,20 @@ public class Othello extends ApplicationAdapter {
 	public CameraInputController camController;
 	public Environment environment;
 	public Model boardModel;
-	public Model disc;
+	public Model discModel;
 	public ModelInstance boardInstance;
 	public ArrayList<ModelInstance> discInstanceList;
+	public ArrayList<ModelInstance> renderDiscInstance;
 	public ModelBatch modelBatch;
 
 	int interfaceType;
 	SpriteBatch batch;
 	Texture img;
 	OthelloGame game;
+	int[][] board;
+
+	public void loadBoard() {
+	}
 
 	// 渲染主菜单
 	public void renderHome() {
@@ -43,7 +49,12 @@ public class Othello extends ApplicationAdapter {
 
 	// 渲染游戏界面
 	public void renderGame() {
+		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
+		modelBatch.begin(cam);
+		modelBatch.render(boardInstance, environment);
+		modelBatch.end();
 	}
 
 	// 渲染本地双人对战选单
@@ -74,38 +85,42 @@ public class Othello extends ApplicationAdapter {
 
 	@Override
 	public void create () {
-		interfaceType = OthelloConstants.InterfaceType.HOME;
+		interfaceType = OthelloConstants.InterfaceType.GAME;
 
+		// 初始化相机
 		cam = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		cam.position.set(1f, 1f, 1f);
-		cam.lookAt(0, 0, 0);
+		cam.position.set(3f, 7f, -3f);
+		cam.lookAt(3f, 0f, -4f);
 		cam.near = 1f;
 		cam.far = 300f;
 		cam.update();
 
+		// 初始化场景
 		environment = new Environment();
 		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
-		environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -2f, -2f, -2f));
+		environment.add(new PointLight().set(0.8f, 0.8f, 0.8f, 3f, 5f, -5f, 300));
 
+		// 加载棋盘和棋子模型
 		ModelLoader loader = new ObjLoader();
 		boardModel = loader.loadModel(Gdx.files.internal("models/board.obj"));
+		discModel = loader.loadModel(Gdx.files.internal("models/disc.obj"));
 		boardInstance = new ModelInstance(boardModel);
+		discInstanceList = new ArrayList<>();
+		for (int i = 1; i <= 64; i++)
+			discInstanceList.add(new ModelInstance(discModel));
 		modelBatch = new ModelBatch();
 
-		camController = new CameraInputController(cam);
-		Gdx.input.setInputProcessor(camController);
 	}
 
 	@Override
 	public void render () {
-		camController.update();
+		// camController.update();
 
-		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+		if (interfaceType == OthelloConstants.InterfaceType.HOME)
+			renderHome();
 
-		modelBatch.begin(cam);
-		modelBatch.render(boardInstance, environment);
-		modelBatch.end();
+		if (interfaceType == OthelloConstants.InterfaceType.GAME)
+			renderGame();
 	}
 	
 	@Override
