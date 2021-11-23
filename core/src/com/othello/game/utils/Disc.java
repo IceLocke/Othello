@@ -3,6 +3,7 @@ package com.othello.game.utils;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Vector3;
 import javafx.animation.Animation;
 
 public class Disc {
@@ -11,23 +12,27 @@ public class Disc {
     private int x;
     private int y;
     private int upColor;
+
     public ModelInstance modelInstance;
     public AnimationController animationController;
+    public static final float boardScale = 1.05f;
+    public static final float zPosShifting = -8.5f * boardScale;
+    public static final float xPosShifting = -1.5f * boardScale;
+    public static final float yPosShifting = 0.12f;
 
     public Disc(int x, int y, int upColor, ModelInstance modelInstance, AnimationController animationController) {
         this.x = x;
         this.y = y;
         this.upColor = upColor;
-        if (upColor == OthelloConstants.DiscType.WHITE) {
-            modelInstance.transform = new Matrix4().setToRotation(1f, 0, 0, 180);
-            modelInstance.calculateTransforms();
-        }
         this.modelInstance = modelInstance;
         this.animationController = animationController;
-        float zPos = -8.5f + x;
-        float xPos = y - 1.5f;
-        float yPos = 0.05f;
+
+        float zPos = zPosShifting + x * boardScale;
+        float xPos = xPosShifting + y * boardScale;
+        float yPos = yPosShifting;
         modelInstance.transform = new Matrix4().setToTranslation(xPos, yPos, zPos);
+        if (upColor == OthelloConstants.DiscType.WHITE)
+            modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 180);
         modelInstance.calculateTransforms();
         discID = ++Disc.discCnt;
     }
@@ -38,9 +43,9 @@ public class Disc {
         this.upColor = OthelloConstants.DiscType.BLACK;
         this.modelInstance = modelInstance;
         this.animationController = animationController;
-        float zPos = -8.5f + x;
-        float xPos = y - 1.5f;
-        float yPos = 0.05f;
+        float zPos = zPosShifting + x * boardScale;
+        float xPos = xPosShifting + y * boardScale;
+        float yPos = yPosShifting;
         modelInstance.transform = new Matrix4().setToTranslation(xPos, yPos, zPos);
         modelInstance.calculateTransforms();
         discID = ++Disc.discCnt;
@@ -48,7 +53,7 @@ public class Disc {
 
     public static void rotateToWhite(Disc disc) {
         if (disc.getUpColor() != OthelloConstants.DiscType.WHITE) {
-            disc.modelInstance.transform = new Matrix4().setToRotation(1f, 0, 0, 180);
+            disc.modelInstance.transform = new Matrix4().setToRotation(1f, 0, 0, 90);
             disc.modelInstance.calculateTransforms();
         }
 
@@ -56,7 +61,7 @@ public class Disc {
 
     public static void rotateToBlack(Disc disc) {
         if (disc.getUpColor() != OthelloConstants.DiscType.BLACK) {
-            disc.modelInstance.transform = new Matrix4().setToRotation(1f, 0, 0, 180);
+            disc.modelInstance.transform = new Matrix4().setToRotation(1f, 0, 0, 90);
             disc.modelInstance.calculateTransforms();
         }
     }
@@ -67,9 +72,9 @@ public class Disc {
     }
 
     public static void setPosition(Disc disc, int x, int y) {
-        float zPos = -8.5f + x;
-        float xPos = y - 1.5f;
-        float yPos = 0.05f;
+        float zPos = zPosShifting + x * boardScale;
+        float xPos = xPosShifting + y * boardScale;
+        float yPos = yPosShifting;
         disc.modelInstance.transform = new Matrix4().setToTranslation(xPos, yPos, zPos);
         disc.modelInstance.calculateTransforms();
     }

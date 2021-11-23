@@ -81,10 +81,11 @@ public class Othello extends ApplicationAdapter {
 			for (int j = 1; j <= 8; j++) {
 				if (board[i][j] != newBoard[i][j]) {
 					if (board[i][j] == OthelloConstants.DiscType.BLANK) {
+						// 是新的棋子，将新的棋子加入渲染列表
 						ModelInstance newDiscInstance = discInstanceList.get(discList.getDiscListSize());
 						AnimationController newController = discAnimationControllerList.get(discList.getDiscListSize());
 
-						discList.addDisc(new Disc(i, j, board[i][j], newDiscInstance, newController));
+						discList.addDisc(new Disc(i, j, newBoard[i][j], newDiscInstance, newController));
 						renderInstanceList.add(newDiscInstance);
 					}
 					else {
@@ -143,7 +144,7 @@ public class Othello extends ApplicationAdapter {
 
 		// 初始化相机
 		cam = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		cam.position.set(3f, 7f, -3f);
+		cam.position.set(3f, 7f, -4f);
 		cam.lookAt(3f, 0f, -4f);
 		cam.near = 1f;
 		cam.far = 300f;
