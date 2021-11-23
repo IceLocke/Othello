@@ -12,12 +12,14 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
-import com.badlogic.gdx.graphics.g3d.loader.ObjLoader;
+import com.badlogic.gdx.graphics.g3d.loader.G3dModelLoader;
+import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
-import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.UBJsonReader;
 import com.othello.game.core.OthelloGame;
+import com.othello.game.utils.Disc;
+import com.othello.game.utils.DiscList;
 import com.othello.game.utils.OthelloConstants;
 
 import java.util.ArrayList;
@@ -25,36 +27,43 @@ import java.util.ArrayList;
 public class Othello extends ApplicationAdapter {
 	public PerspectiveCamera cam;
 	public CameraInputController camController;
+
 	public Environment environment;
+
 	public Model boardModel;
 	public Model discModel;
-	public ModelInstance boardInstance;
-	public ArrayList<ModelInstance> discInstanceList;
-	public ArrayList<ModelInstance> renderDiscInstance;
 	public ModelBatch modelBatch;
 
-	int interfaceType;
-	SpriteBatch batch;
-	Texture img;
-	OthelloGame game;
-	int[][] board;
+	public ModelInstance boardInstance;
+	public ArrayList<ModelInstance> discInstanceList;
+	public ArrayList<AnimationController> discAnimationControllerList;
+	public DiscList discList;
+	public ArrayList<ModelInstance> renderInstanceList;
 
-	public void loadBoard() throws Exception {
-		board = new int[10][10];
+	protected int interfaceType;
+	protected SpriteBatch batch;
+	protected Texture img;
+	protected OthelloGame game;
+	protected int[][] board;
+	protected int[][] newBoard;
+	protected boolean newGame = true;
+
+	public void loadBoard() {
+		// 测试 3D 部分
 		for (int i = 0; i <= 9; i++) {
 			for (int j = 0; j <= 9; j++) {
-				board[i][j] = OthelloConstants.DiscType.BLANK;
+				newBoard[i][j] = OthelloConstants.DiscType.BLANK;
 			}
 		}
-		board[4][4] = board[5][5] = OthelloConstants.DiscType.WHITE;
-		board[4][5] = board[5][4] = OthelloConstants.DiscType.BLACK;
+		newBoard[4][4] = newBoard[5][5] = OthelloConstants.DiscType.WHITE;
+		newBoard[4][5] = newBoard[5][4] = OthelloConstants.DiscType.BLACK;
 
+//		与游戏内核沟通
 //		for (int i = 0; i <= 9; i++) {
 //			for (int j = 0; j <= 9; j++) {
 //				board[i][j] = game.getNowPlayBoard()[i][j];
 //			}
 //		}
-
 	}
 
 	// 渲染主菜单
@@ -67,8 +76,37 @@ public class Othello extends ApplicationAdapter {
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
+		loadBoard();
+		for (int i = 1; i <= 8; i++) {
+			for (int j = 1; j <= 8; j++) {
+				if (board[i][j] != newBoard[i][j]) {
+					if (board[i][j] == OthelloConstants.DiscType.BLANK) {
+						ModelInstance newDiscInstance = discInstanceList.get(discList.getDiscListSize());
+						AnimationController newController = discAnimationControllerList.get(discList.getDiscListSize());
+
+						discList.addDisc(new Disc(i, j, board[i][j], newDiscInstance, newController));
+						renderInstanceList.add(newDiscInstance);
+					}
+					else {
+						// 翻转棋子
+						Disc disc = discList.getDiscAtPosition(i, j);
+						if (disc.getUpColor() == OthelloConstants.DiscType.BLACK)
+							disc.animationController.setAnimation("BlackToWhite");
+						else
+							disc.animationController.setAnimation("WhiteToBlack");
+					}
+				}
+				board[i][j] = newBoard[i][j];
+			}
+		}
+
+		ArrayList<Disc> discArrayList = discList.getDiscList();
+		for (Disc disc : discArrayList) {
+			disc.animationController.update(Gdx.graphics.getDeltaTime());
+		}
+
 		modelBatch.begin(cam);
-		modelBatch.render(boardInstance, environment);
+		modelBatch.render(renderInstanceList, environment);
 		modelBatch.end();
 	}
 
@@ -87,8 +125,6 @@ public class Othello extends ApplicationAdapter {
 
 	}
 
-	//
-
 	// 本地对战逻辑
 	public void localGameLogic() {
 	}
@@ -100,6 +136,9 @@ public class Othello extends ApplicationAdapter {
 
 	@Override
 	public void create () {
+		// 后面要改成 HOME
+		// 后面要改成 HOME
+		// 后面要改成 HOME
 		interfaceType = OthelloConstants.InterfaceType.GAME;
 
 		// 初始化相机
@@ -116,15 +155,32 @@ public class Othello extends ApplicationAdapter {
 		environment.add(new PointLight().set(0.8f, 0.8f, 0.8f, 3f, 5f, -5f, 300));
 
 		// 加载棋盘和棋子模型
-		ModelLoader loader = new ObjLoader();
-		boardModel = loader.loadModel(Gdx.files.internal("models/board.obj"));
-		discModel = loader.loadModel(Gdx.files.internal("models/disc.obj"));
+		UBJsonReader jsonReader = new UBJsonReader();
+		ModelLoader loader = new G3dModelLoader(jsonReader);
+		boardModel = loader.loadModel(Gdx.files.internal("models/board.g3db"));
+		discModel = loader.loadModel(Gdx.files.internal("models/disc.g3db"));
 		boardInstance = new ModelInstance(boardModel);
+		discList = new DiscList();
 		discInstanceList = new ArrayList<>();
-		for (int i = 1; i <= 64; i++)
-			discInstanceList.add(new ModelInstance(discModel));
+		discAnimationControllerList = new ArrayList<>();
+		for (int i = 1; i <= 64; i++) {
+			ModelInstance discInstance = new ModelInstance(discModel);
+			discInstanceList.add(discInstance);
+			discAnimationControllerList.add(new AnimationController(discInstance));
+		}
 		modelBatch = new ModelBatch();
+		renderInstanceList = new ArrayList<ModelInstance>();
+		renderInstanceList.add(boardInstance);
 
+		// 初始化棋盘数据
+		board = new int[10][10];
+		newBoard = new int[10][10];
+		for (int i = 0; i <= 9; i++) {
+			for (int j = 0; j <= 9; j++) {
+				board[i][j] = OthelloConstants.DiscType.BLANK;
+				newBoard[i][j] = OthelloConstants.DiscType.BLANK;
+			}
+		}
 	}
 
 	@Override
