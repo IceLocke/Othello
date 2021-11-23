@@ -20,10 +20,10 @@ import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.UBJsonReader;
 import com.othello.game.core.OthelloGame;
+import com.othello.game.processor.HomeInputProcessor;
 import com.othello.game.utils.Disc;
 import com.othello.game.utils.DiscList;
 import com.othello.game.utils.OthelloConstants;
-import jdk.nashorn.internal.runtime.options.OptionTemplate;
 
 import java.util.ArrayList;
 
@@ -48,31 +48,49 @@ public class Othello extends ApplicationAdapter {
 	public DiscList discList;
 	public ArrayList<ModelInstance> renderInstanceList;
 
-	protected int interfaceType;
+	public static int interfaceType = OthelloConstants.InterfaceType.HOME;
+	public static int menuButtonType = OthelloConstants.MenuButtonType.NONE;
+	public static boolean menuButtonPressed = false;
+
 	protected SpriteBatch batch;
-	protected Texture img;
+	protected Texture homeDefault;
+	protected Texture homeSingleHighlight;
+	protected Texture homeMultipleHighlight;
+	protected Texture homeOnlineHighlight;
+	protected Texture homeExitHighlight;
 	protected OthelloGame game;
 	protected int[][] board;
 	protected int[][] newBoard;
 	protected boolean newGame = true;
 
 	public void loadBoard() {
-		for (int i = 0; i <= 9; i++) {
-			for (int j = 0; j <= 9; j++)
-				newBoard[i][j] = OthelloConstants.DiscType.BLANK;
-		}
-		newBoard[4][4] = newBoard[5][5] = OthelloConstants.DiscType.WHITE;
-		newBoard[4][5] = newBoard[5][4] = OthelloConstants.DiscType.BLACK;
 //		for (int i = 0; i <= 9; i++) {
-//			for (int j = 0; j <= 9; j++) {
-//				newBoard[i][j] = game.getNowPlayBoard()[i][j];
-//			}
+//			for (int j = 0; j <= 9; j++)
+//				newBoard[i][j] = OthelloConstants.DiscType.BLANK;
 //		}
+//		newBoard[4][4] = newBoard[5][5] = OthelloConstants.DiscType.WHITE;
+//		newBoard[4][5] = newBoard[5][4] = OthelloConstants.DiscType.BLACK;
+		for (int i = 0; i <= 9; i++) {
+			for (int j = 0; j <= 9; j++) {
+				newBoard[i][j] = game.getNowPlayBoard()[i][j];
+			}
+		}
 	}
 
 	// 渲染主菜单
 	public void renderHome() {
-
+		batch.begin();
+		if (menuButtonType == OthelloConstants.MenuButtonType.NONE)
+			batch.draw(homeDefault, 0f, 0f);
+		if (menuButtonType == OthelloConstants.MenuButtonType.LOCAL_SINGLE_PLAYER)
+			batch.draw(homeSingleHighlight, 0f, 0f);
+		if (menuButtonType == OthelloConstants.MenuButtonType.LOCAL_MULTIPLE_PLAYER)
+			batch.draw(homeMultipleHighlight, 0f, 0f);
+		if (menuButtonType == OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER)
+			batch.draw(homeOnlineHighlight, 0f, 0f);
+		if (menuButtonType == OthelloConstants.MenuButtonType.EXIT)
+			batch.draw(homeExitHighlight, 0f, 0f);
+		batch.end();
 	}
 
 	// 渲染游戏界面
@@ -138,7 +156,9 @@ public class Othello extends ApplicationAdapter {
 
 	@Override
 	public void create () {
-		interfaceType = OthelloConstants.InterfaceType.GAME;
+		interfaceType = OthelloConstants.InterfaceType.HOME;
+
+		/* --- 3D 部分初始化开始 --- */
 
 		// 初始化相机
 		cam = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -195,7 +215,18 @@ public class Othello extends ApplicationAdapter {
 			}
 		}
 
-///
+		/* --- 3D 部分初始化结束 --- */
+
+		/* --- 主菜单 UI 初始化开始 ---*/
+		homeDefault = new Texture(Gdx.files.internal("menu/home_default.png"));
+		homeSingleHighlight = new Texture(Gdx.files.internal("menu/home_single_highlight.png"));
+		homeMultipleHighlight = new Texture(Gdx.files.internal("menu/home_multiple_highlight.png"));
+		homeOnlineHighlight = new Texture(Gdx.files.internal("menu/home_online_highlight.png"));
+		homeExitHighlight = new Texture(Gdx.files.internal("menu/home_exit_highlight.png"));
+
+		batch = new SpriteBatch();
+
+		Gdx.input.setInputProcessor(new HomeInputProcessor());
 	}
 
 	@Override
