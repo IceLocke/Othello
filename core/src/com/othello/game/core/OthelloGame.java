@@ -96,11 +96,11 @@ public class OthelloGame {
             throw new Exception("There is not play in the play list");
     }
 
-    public int[][] getNowPlayBoard() throws Exception {
+    public int[][] getNowPlayBoard(){
         if (playList.size() > 0)
             return playList.get(playList.size() - 1).getBoard();
         else
-            throw new Exception("There is not play in the play list");
+            return null;
     }
 
 }

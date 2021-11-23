@@ -51,24 +51,17 @@ public class Disc {
         discID = ++Disc.discCnt;
     }
 
-    public static void rotateToWhite(Disc disc) {
-        if (disc.getUpColor() != OthelloConstants.DiscType.WHITE) {
-            disc.modelInstance.transform = new Matrix4().setToRotation(1f, 0, 0, 90);
-            disc.modelInstance.calculateTransforms();
-        }
-
-    }
-
-    public static void rotateToBlack(Disc disc) {
-        if (disc.getUpColor() != OthelloConstants.DiscType.BLACK) {
-            disc.modelInstance.transform = new Matrix4().setToRotation(1f, 0, 0, 90);
-            disc.modelInstance.calculateTransforms();
-        }
-    }
-
     public static void rotate(Disc disc) {
         disc.modelInstance.transform = new Matrix4().setToRotation(1f, 0, 0, 180);
         disc.modelInstance.calculateTransforms();
+    }
+
+    public void rotate() {
+        if(upColor == OthelloConstants.DiscType.BLACK)
+            modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 180);
+        else
+            modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 0);
+        modelInstance.calculateTransforms();
     }
 
     public static void setPosition(Disc disc, int x, int y) {

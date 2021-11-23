@@ -49,21 +49,11 @@ public class Othello extends ApplicationAdapter {
 	protected boolean newGame = true;
 
 	public void loadBoard() {
-		// 测试 3D 部分
 		for (int i = 0; i <= 9; i++) {
 			for (int j = 0; j <= 9; j++) {
-				newBoard[i][j] = OthelloConstants.DiscType.BLANK;
+				board[i][j] = game.getNowPlayBoard()[i][j];
 			}
 		}
-		newBoard[4][4] = newBoard[5][5] = OthelloConstants.DiscType.WHITE;
-		newBoard[4][5] = newBoard[5][4] = OthelloConstants.DiscType.BLACK;
-
-//		与游戏内核沟通
-//		for (int i = 0; i <= 9; i++) {
-//			for (int j = 0; j <= 9; j++) {
-//				board[i][j] = game.getNowPlayBoard()[i][j];
-//			}
-//		}
 	}
 
 	// 渲染主菜单
@@ -72,7 +62,7 @@ public class Othello extends ApplicationAdapter {
 	}
 
 	// 渲染游戏界面
-	public void renderGame() {
+	public void renderGame(){
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
@@ -91,10 +81,7 @@ public class Othello extends ApplicationAdapter {
 					else {
 						// 翻转棋子
 						Disc disc = discList.getDiscAtPosition(i, j);
-						if (disc.getUpColor() == OthelloConstants.DiscType.BLACK)
-							disc.animationController.setAnimation("BlackToWhite");
-						else
-							disc.animationController.setAnimation("WhiteToBlack");
+						disc.rotate();
 					}
 				}
 				board[i][j] = newBoard[i][j];
@@ -137,10 +124,7 @@ public class Othello extends ApplicationAdapter {
 
 	@Override
 	public void create () {
-		// 后面要改成 HOME
-		// 后面要改成 HOME
-		// 后面要改成 HOME
-		interfaceType = OthelloConstants.InterfaceType.GAME;
+		interfaceType = OthelloConstants.InterfaceType.HOME;
 
 		// 初始化相机
 		cam = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -172,6 +156,7 @@ public class Othello extends ApplicationAdapter {
 		modelBatch = new ModelBatch();
 		renderInstanceList = new ArrayList<ModelInstance>();
 		renderInstanceList.add(boardInstance);
+		discAnimationControllerList.get(0).setAnimation("disc|WhiteToBlack");
 
 		// 初始化棋盘数据
 		board = new int[10][10];
