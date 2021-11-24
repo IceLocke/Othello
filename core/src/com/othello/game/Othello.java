@@ -6,7 +6,10 @@ import com.badlogic.gdx.assets.loaders.ModelLoader;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
@@ -18,6 +21,7 @@ import com.badlogic.gdx.graphics.g3d.loader.ObjLoader;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.utils.BufferUtils;
 import com.badlogic.gdx.utils.UBJsonReader;
 import com.othello.game.core.OthelloGame;
 import com.othello.game.processor.HomeInputProcessor;
@@ -48,6 +52,12 @@ public class Othello extends ApplicationAdapter {
 	public DiscList discList;
 	public ArrayList<ModelInstance> renderInstanceList;
 
+	public FreeTypeFontGenerator generator;
+	public FreeTypeFontGenerator generatorBold;
+	public BitmapFont titleFont;
+	public BitmapFont buttonFont;
+	public BitmapFont buttonFontBold;
+
 	public static int interfaceType = OthelloConstants.InterfaceType.HOME;
 	public static int menuButtonType = OthelloConstants.MenuButtonType.NONE;
 	public static boolean menuButtonPressed = false;
@@ -65,6 +75,7 @@ public class Othello extends ApplicationAdapter {
 	protected boolean newGame = true;
 
 	public void loadBoard() {
+//	    测试棋盘模型用
 //		for (int i = 0; i <= 9; i++) {
 //			for (int j = 0; j <= 9; j++)
 //				newBoard[i][j] = OthelloConstants.DiscType.BLANK;
@@ -80,40 +91,43 @@ public class Othello extends ApplicationAdapter {
 
 	// 渲染主菜单
 	public void renderHome() {
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		batch.begin();
+		batch.draw(homeDefault, 0, 0);
+		titleFont.draw(batch, "Othello!", 480f, 540f);
 		switch (menuButtonType) {
 			case OthelloConstants.MenuButtonType.NONE:
-				batch.draw(homeDefault, 0f, 0f);
+				buttonFont.draw(batch, "Single Player", 100f, 290f);
+				buttonFont.draw(batch, "Multiple Player", 100f, 230f);
+				buttonFont.draw(batch, "Online Game", 100f, 170f);
+				buttonFont.draw(batch, "Exit", 100f, 100f);
 				break;
 			case OthelloConstants.MenuButtonType.LOCAL_SINGLE_PLAYER:
-				batch.draw(homeSingleHighlight, 0f, 0f);
+				buttonFontBold.draw(batch, "Single Player", 100f, 290f);
+				buttonFont.draw(batch, "Multiple Player", 100f, 230f);
+				buttonFont.draw(batch, "Online Game", 100f, 170f);
+				buttonFont.draw(batch, "Exit", 100f, 100f);
 				break;
 			case OthelloConstants.MenuButtonType.LOCAL_MULTIPLE_PLAYER:
-				batch.draw(homeMultipleHighlight, 0f, 0f);
+				buttonFont.draw(batch, "Single Player", 100f, 290f);
+				buttonFontBold.draw(batch, "Multiple Player", 100f, 230f);
+				buttonFont.draw(batch, "Online Game", 100f, 170f);
+				buttonFont.draw(batch, "Exit", 100f, 100f);
 				break;
 			case OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER:
-				batch.draw(homeOnlineHighlight, 0f, 0f);
+				buttonFont.draw(batch, "Single Player", 100f, 290f);
+				buttonFont.draw(batch, "Multiple Player", 100f, 230f);
+				buttonFontBold.draw(batch, "Online Game", 100f, 170f);
+				buttonFont.draw(batch, "Exit", 100f, 100f);
 				break;
 			case OthelloConstants.MenuButtonType.EXIT:
-				batch.draw(homeExitHighlight, 0f, 0f);
+				buttonFont.draw(batch, "Single Player", 100f, 290f);
+				buttonFont.draw(batch, "Multiple Player", 100f, 230f);
+				buttonFont.draw(batch, "Online Game", 100f, 170f);
+				buttonFontBold.draw(batch, "Exit", 100f, 100f);
 				break;
 		}
-		if (menuButtonPressed) {
-			switch (menuButtonType) {
-				case OthelloConstants.MenuButtonType.LOCAL_SINGLE_PLAYER:
-					interfaceType = OthelloConstants.InterfaceType.SINGLE_PLAYER_MENU;
-					break;
-				case OthelloConstants.MenuButtonType.LOCAL_MULTIPLE_PLAYER:
-					interfaceType = OthelloConstants.InterfaceType.MULTIPLE_PLAYER_MENU;
-					break;
-				case OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER:
-					interfaceType = OthelloConstants.InterfaceType.ONLINE_MENU;
-					break;
-				case OthelloConstants.MenuButtonType.EXIT:
-					this.dispose();
-				default: break;
-			}
-		}
+		homeLogic();
 		batch.end();
 	}
 
@@ -163,9 +177,28 @@ public class Othello extends ApplicationAdapter {
 
 	}
 
+	public void renderOnlineMultiplePlayerMenu() {
+
+	}
+
 	// 主菜单逻辑
 	public void homeLogic() {
-
+		if (menuButtonPressed) {
+			switch (menuButtonType) {
+				case OthelloConstants.MenuButtonType.LOCAL_SINGLE_PLAYER:
+					interfaceType = OthelloConstants.InterfaceType.SINGLE_PLAYER_MENU;
+					break;
+				case OthelloConstants.MenuButtonType.LOCAL_MULTIPLE_PLAYER:
+					interfaceType = OthelloConstants.InterfaceType.MULTIPLE_PLAYER_MENU;
+					break;
+				case OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER:
+					interfaceType = OthelloConstants.InterfaceType.ONLINE_MENU;
+					break;
+				case OthelloConstants.MenuButtonType.EXIT:
+					this.dispose();
+				default: break;
+			}
+		}
 	}
 
 	// 本地对战逻辑
@@ -247,11 +280,18 @@ public class Othello extends ApplicationAdapter {
 		/* --- 3D 部分初始化结束 --- */
 
 		/* --- 主菜单 UI 初始化开始 --- */
-		homeDefault = new Texture(Gdx.files.internal("menu/home_default.png"));
-		homeSingleHighlight = new Texture(Gdx.files.internal("menu/home_single_highlight.png"));
-		homeMultipleHighlight = new Texture(Gdx.files.internal("menu/home_multiple_highlight.png"));
-		homeOnlineHighlight = new Texture(Gdx.files.internal("menu/home_online_highlight.png"));
-		homeExitHighlight = new Texture(Gdx.files.internal("menu/home_exit_highlight.png"));
+		homeDefault = new Texture(Gdx.files.internal("menu/home_blank.png"));
+		generator = new FreeTypeFontGenerator(Gdx.files.internal("font/BRLNSR.TTF"));
+		generatorBold = new FreeTypeFontGenerator(Gdx.files.internal("font/BRLNSB.TTF"));
+		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
+
+		// 生成 BitmapFont
+		parameter.size = 96;
+		titleFont = generator.generateFont(parameter);
+
+		parameter.size = 36;
+		buttonFont = generator.generateFont(parameter);
+		buttonFontBold = generatorBold.generateFont(parameter);
 
 		Gdx.input.setInputProcessor(new HomeInputProcessor());
 		/* --- 主菜单 UI 初始化结束 --- */
@@ -260,7 +300,6 @@ public class Othello extends ApplicationAdapter {
 	@Override
 	public void render () {
 		 // camController.update();
-
 		if (interfaceType == OthelloConstants.InterfaceType.HOME) {
 			renderHome();
 		}

@@ -6,7 +6,7 @@ import com.othello.game.utils.OthelloConstants;
 
 public class HomeInputProcessor extends InputAdapter {
     public int getButtonType(int x, int y) {
-        if (x < 100 || x > 420 || y < 420 || y > 680)
+        if (x < 100 || x > 360 || y < 420 || y > 680)
             return OthelloConstants.MenuButtonType.NONE;
         if (y < 490)
             return OthelloConstants.MenuButtonType.LOCAL_SINGLE_PLAYER;
