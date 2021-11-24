@@ -9,6 +9,11 @@ public class Step {
         this.color = color;
     }
 
+    public Step(Position position, int color) {
+        this.position = position;
+        this.color = color;
+    }
+
     public int getColor() {
         return color;
     }

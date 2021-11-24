@@ -17,25 +17,24 @@ public abstract class OthelloCore {
 
     public void setBoard(int[][] board) {
         for(int i = 1; i <= 8; ++i)
-            for(int j = 1; j <= 8; ++j)
-                this.board[i][j] = board[i][j];
+            this.board[i] = board[i].clone();
     }
 
-    OthelloCore() {
+    public OthelloCore() {
         this.turnColor = BLACK;
         board = new int[10][10];
         board[4][4] = board[5][5] = WHITE;
         board[4][5] = board[5][4] = BLACK;
     }
 
-    OthelloCore(int turnColor) { // 默认棋盘
+    public OthelloCore(int turnColor) { // 默认棋盘
         this.turnColor = turnColor;
         board = new int[10][10];
         board[4][4] = board[5][5] = WHITE;
         board[4][5] = board[5][4] = BLACK;
     }
 
-    OthelloCore(int turnColor, int[][] board) {
+    public OthelloCore(int turnColor, int[][] board) {
         this.turnColor = turnColor;
         setBoard(board);
     }
@@ -72,7 +71,7 @@ public abstract class OthelloCore {
         return false;
     }
 
-    ArrayList<Position> getValidPosition(int color) {
+    public ArrayList<Position> getValidPosition(int color) {
         ArrayList<Position> validPosition = new ArrayList<>();
         for(int i = 1; i <= 8; ++i)
             for(int j = 1; j <= 8; ++j)
@@ -81,7 +80,7 @@ public abstract class OthelloCore {
         return validPosition;
     }
 
-    ArrayList<Position> getValidPosition() { // 默认找当前轮到的颜色的可选位置
+    public ArrayList<Position> getValidPosition() { // 默认找当前轮到的颜色的可选位置
         return getValidPosition(turnColor);
     }
 
