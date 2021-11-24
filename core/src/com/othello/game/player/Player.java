@@ -20,6 +20,34 @@ public abstract class Player {
         return core;
     }
 
+    public void setColor(int color) {
+        this.color = color;
+    }
+
+    public int getPlayerID() {
+        return playerID;
+    }
+
+    public void setPlayerID(int playerID) {
+        this.playerID = playerID;
+    }
+
+    public void setPlayCount(int playCount) {
+        this.playCount = playCount;
+    }
+
+    public void setPlayerName(String playerName) {
+        this.playerName = playerName;
+    }
+
+    public void setPlayerProfilePhotoURL(String playerProfilePhotoURL) {
+        this.playerProfilePhotoURL = playerProfilePhotoURL;
+    }
+
+    public void setWinCount(int winCount) {
+        this.winCount = winCount;
+    }
+
     public int getID() {
         return playerID;
     }
