@@ -75,13 +75,15 @@ public class Othello extends ApplicationAdapter {
 	protected boolean newGame = true;
 
 	public void loadBoard() {
-//	    测试棋盘模型用
-//		for (int i = 0; i <= 9; i++) {
-//			for (int j = 0; j <= 9; j++)
-//				newBoard[i][j] = OthelloConstants.DiscType.BLANK;
-//		}
-//		newBoard[4][4] = newBoard[5][5] = OthelloConstants.DiscType.WHITE;
-//		newBoard[4][5] = newBoard[5][4] = OthelloConstants.DiscType.BLACK;
+/*
+	    测试棋盘模型用
+		for (int i = 0; i <= 9; i++) {
+			for (int j = 0; j <= 9; j++)
+				newBoard[i][j] = OthelloConstants.DiscType.BLANK;
+		}
+		newBoard[4][4] = newBoard[5][5] = OthelloConstants.DiscType.WHITE;
+		newBoard[4][5] = newBoard[5][4] = OthelloConstants.DiscType.BLACK;
+*/
 		for (int i = 0; i <= 9; i++) {
 			for (int j = 0; j <= 9; j++) {
 				newBoard[i][j] = game.getNowPlayBoard()[i][j];
@@ -100,31 +102,31 @@ public class Othello extends ApplicationAdapter {
 				buttonFont.draw(batch, "Single Player", 100f, 290f);
 				buttonFont.draw(batch, "Multiple Player", 100f, 230f);
 				buttonFont.draw(batch, "Online Game", 100f, 170f);
-				buttonFont.draw(batch, "Exit", 100f, 100f);
+				buttonFont.draw(batch, "Exit", 100f, 110f);
 				break;
 			case OthelloConstants.MenuButtonType.LOCAL_SINGLE_PLAYER:
 				buttonFontBold.draw(batch, "Single Player", 100f, 290f);
 				buttonFont.draw(batch, "Multiple Player", 100f, 230f);
 				buttonFont.draw(batch, "Online Game", 100f, 170f);
-				buttonFont.draw(batch, "Exit", 100f, 100f);
+				buttonFont.draw(batch, "Exit", 100f, 110f);
 				break;
 			case OthelloConstants.MenuButtonType.LOCAL_MULTIPLE_PLAYER:
 				buttonFont.draw(batch, "Single Player", 100f, 290f);
 				buttonFontBold.draw(batch, "Multiple Player", 100f, 230f);
 				buttonFont.draw(batch, "Online Game", 100f, 170f);
-				buttonFont.draw(batch, "Exit", 100f, 100f);
+				buttonFont.draw(batch, "Exit", 100f, 110f);
 				break;
 			case OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER:
 				buttonFont.draw(batch, "Single Player", 100f, 290f);
 				buttonFont.draw(batch, "Multiple Player", 100f, 230f);
 				buttonFontBold.draw(batch, "Online Game", 100f, 170f);
-				buttonFont.draw(batch, "Exit", 100f, 100f);
+				buttonFont.draw(batch, "Exit", 100f, 110f);
 				break;
 			case OthelloConstants.MenuButtonType.EXIT:
 				buttonFont.draw(batch, "Single Player", 100f, 290f);
 				buttonFont.draw(batch, "Multiple Player", 100f, 230f);
 				buttonFont.draw(batch, "Online Game", 100f, 170f);
-				buttonFontBold.draw(batch, "Exit", 100f, 100f);
+				buttonFontBold.draw(batch, "Exit", 100f, 110f);
 				break;
 		}
 		homeLogic();
@@ -195,7 +197,8 @@ public class Othello extends ApplicationAdapter {
 					interfaceType = OthelloConstants.InterfaceType.ONLINE_MENU;
 					break;
 				case OthelloConstants.MenuButtonType.EXIT:
-					this.dispose();
+					Gdx.app.exit();
+					break;
 				default: break;
 			}
 		}
@@ -262,7 +265,7 @@ public class Othello extends ApplicationAdapter {
 		modelBatch = new ModelBatch();
 
 		// 将桌子和棋盘加入渲染队列
-		renderInstanceList = new ArrayList<ModelInstance>();
+		renderInstanceList = new ArrayList<>();
 		renderInstanceList.add(tableInstance);
 		renderInstanceList.add(frameInstance);
 		renderInstanceList.add(boardInstance);
