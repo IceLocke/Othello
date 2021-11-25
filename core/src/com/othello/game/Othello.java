@@ -3,6 +3,7 @@ package com.othello.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.loaders.ModelLoader;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -21,7 +22,6 @@ import com.badlogic.gdx.graphics.g3d.loader.ObjLoader;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.utils.BufferUtils;
 import com.badlogic.gdx.utils.UBJsonReader;
 import com.othello.game.core.OthelloGame;
 import com.othello.game.processor.HomeInputProcessor;
@@ -65,10 +65,6 @@ public class Othello extends ApplicationAdapter {
 	protected SpriteBatch batch;
 	protected Texture homeLoading;
 	protected Texture homeDefault;
-	protected Texture homeSingleHighlight;
-	protected Texture homeMultipleHighlight;
-	protected Texture homeOnlineHighlight;
-	protected Texture homeExitHighlight;
 	protected OthelloGame game;
 	protected int[][] board;
 	protected int[][] newBoard;
@@ -285,15 +281,19 @@ public class Othello extends ApplicationAdapter {
 		/* --- 主菜单 UI 初始化开始 --- */
 		homeDefault = new Texture(Gdx.files.internal("menu/home_blank.png"));
 		generator = new FreeTypeFontGenerator(Gdx.files.internal("font/BRLNSR.TTF"));
-		generatorBold = new FreeTypeFontGenerator(Gdx.files.internal("font/BRLNSB.TTF"));
+		generatorBold = new FreeTypeFontGenerator(Gdx.files.internal("font/BRLNSR.TTF"));
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 
 		// 生成 BitmapFont
 		parameter.size = 96;
+		parameter.borderColor = Color.BLACK;
+		parameter.borderWidth = 4;
 		titleFont = generator.generateFont(parameter);
 
 		parameter.size = 36;
+		parameter.borderWidth = 0;
 		buttonFont = generator.generateFont(parameter);
+		parameter.borderWidth = 2;
 		buttonFontBold = generatorBold.generateFont(parameter);
 
 		Gdx.input.setInputProcessor(new HomeInputProcessor());
@@ -302,13 +302,18 @@ public class Othello extends ApplicationAdapter {
 
 	@Override
 	public void render () {
-		 // camController.update();
-		if (interfaceType == OthelloConstants.InterfaceType.HOME) {
-			renderHome();
-		}
-
-		if (interfaceType == OthelloConstants.InterfaceType.GAME) {
-			renderGame();
+		// camController.update();
+		switch (interfaceType) {
+			case OthelloConstants.InterfaceType.HOME:
+				renderHome();
+				break;
+			case OthelloConstants.InterfaceType.GAME:
+				renderGame();
+				break;
+			case OthelloConstants.InterfaceType.SINGLE_PLAYER_MENU:
+				renderLocalSinglePlayerMenu();
+				break;
+			case OthelloConstants.InterfaceType.MULTIPLE_PLAYER_MENU:
 		}
 
 	}
