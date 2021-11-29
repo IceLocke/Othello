@@ -25,6 +25,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.UBJsonReader;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.othello.game.core.OthelloGame;
@@ -177,6 +178,7 @@ public class Othello extends ApplicationAdapter {
 			}
 
 			Label titleLabel = null;
+			Label blankLabel = new Label("", labelStyle);
 			Label player1Label = new Label("Player 1", labelStyle);
 			Label player2Label = new Label("Player 2", labelStyle);
 			Label difficultyLabel = new Label("Difficulty", labelStyle);
@@ -184,11 +186,15 @@ public class Othello extends ApplicationAdapter {
 			Label serverAddressLabel = null;
 			TextButton startButton = new TextButton("Start", skin);
 			TextButton backButton = new TextButton("Back", skin);
+			TextButton loadButton = new TextButton("Load", skin);
 			TextField player1TextField = new TextField("player1", skin);
 			TextField player2TextField = new TextField("player2", skin);
 			TextField serverAddressTextField = null;
-			SelectBox difficultySelectBox = new SelectBox(skin);
-			SelectBox gameRoundSelectBox = new SelectBox(skin);
+			SelectBox<String> difficultySelectBox = new SelectBox(skin);
+			SelectBox<String> gameRoundSelectBox = new SelectBox(skin);
+
+			difficultySelectBox.setItems("Easy", "Medium", "Hard");
+			gameRoundSelectBox.setItems("1", "3", "5");
 
 			switch (menuButtonType) {
 				case OthelloConstants.MenuButtonType.EXIT:
@@ -203,6 +209,8 @@ public class Othello extends ApplicationAdapter {
 				case OthelloConstants.MenuButtonType.LOCAL_MULTIPLE_PLAYER:
 					interfaceType = OthelloConstants.InterfaceType.LOCAL_MULTIPLE_PLAYER_MENU;
 					titleLabel = new Label("Multiple Player", titleLabelStyle);
+					difficultySelectBox.setDisabled(true);
+					difficultySelectBox.setItems("N/A");
 					break;
 				case OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER:
 					interfaceType = OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU;
@@ -216,29 +224,40 @@ public class Othello extends ApplicationAdapter {
 
 			// 本地游戏的绘制
 			if (menuButtonType != OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER) {
-				titleLabel.setPosition(10, 700);
-				player1Label.setPosition(10, 650);
-				player1TextField.setPosition(80, 650);
-				player2Label.setPosition(10, 620);
-				player2TextField.setPosition(80, 620);
-				gameRoundLabel.setPosition(10, 620);
-				gameRoundSelectBox.setPosition(80, 620);
-				difficultyLabel.setPosition(10, 590);
-				difficultySelectBox.setPosition(80, 590);
-
+				homeTable.align(Align.center);
+				homeTable.add(blankLabel);
 				homeTable.add(titleLabel);
+				homeTable.add(blankLabel);
+				homeTable.row();
+				homeTable.add(blankLabel);
 				homeTable.row();
 				homeTable.add(player1Label);
+				homeTable.add(blankLabel);
 				homeTable.add(player1TextField);
 				homeTable.row();
+				homeTable.add(blankLabel);
+				homeTable.row();
 				homeTable.add(player2Label);
+				homeTable.add(blankLabel);
 				homeTable.add(player2TextField);
 				homeTable.row();
+				homeTable.add(blankLabel);
+				homeTable.row();
 				homeTable.add(gameRoundLabel);
+				homeTable.add(blankLabel);
 				homeTable.add(gameRoundSelectBox);
 				homeTable.row();
+				homeTable.add(blankLabel);
+				homeTable.row();
 				homeTable.add(difficultyLabel);
+				homeTable.add(blankLabel);
 				homeTable.add(difficultySelectBox);
+				homeTable.row();
+				homeTable.add(blankLabel);
+				homeTable.row();
+				homeTable.add(startButton);
+				homeTable.add(loadButton);
+				homeTable.add(backButton);
 			}
 
 			// 在线游戏的绘制
