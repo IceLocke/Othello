@@ -23,6 +23,8 @@ public class OthelloPlay {
         this.whitePlayer = whitePlayer;
         this.blackPlayer = blackPlayer;
         this.core = core;
+        this.whitePlayer.setCore(core);
+        this.blackPlayer.setCore(core);
         this.playID = ++playCnt;
         this.playName = name;
     }
@@ -31,6 +33,8 @@ public class OthelloPlay {
         this.whitePlayer = whitePlayer;
         this.blackPlayer = blackPlayer;
         this.core = core;
+        this.whitePlayer.setCore(core);
+        this.blackPlayer.setCore(core);
         this.playID = ++playCnt;
         this.playName = String.format("GAME %d", this.playID);
     }

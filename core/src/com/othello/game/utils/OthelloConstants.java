@@ -28,4 +28,10 @@ public interface OthelloConstants {
         int ONLINE_MULTIPLE_PLAYER = 3;
         int EXIT = 4;
     }
+
+    interface AIDifficulty {
+        int EASY = 0;
+        int NORMAL = 1;
+        int HARD = 2;
+    }
 }

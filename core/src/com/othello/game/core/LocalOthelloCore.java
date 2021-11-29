@@ -3,6 +3,10 @@ package com.othello.game.core;
 import com.othello.game.utils.Step;
 
 public class LocalOthelloCore extends OthelloCore {
+    public LocalOthelloCore(int turnColor, int[][] board) {
+        this.turnColor = turnColor;
+        setBoard(board);
+    }
 
     public boolean addStep(Step step) {
         assert step.getColor() == super.turnColor;
