@@ -4,9 +4,9 @@ public interface OthelloConstants {
     interface InterfaceType {
         int HOME = 1;
         int GAME = 2;
-        int SINGLE_PLAYER_MENU = 3;
-        int MULTIPLE_PLAYER_MENU = 4;
-        int ONLINE_MENU = 5;
+        int LOCAL_SINGLE_PLAYER_MENU = 3;
+        int LOCAL_MULTIPLE_PLAYER_MENU = 4;
+        int ONLINE_MULTIPLE_PLAYER_MENU = 5;
     }
 
     interface GameMode {

@@ -22,6 +22,8 @@ import com.badlogic.gdx.graphics.g3d.loader.ObjLoader;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.UBJsonReader;
 import com.othello.game.core.OthelloGame;
 import com.othello.game.processor.HomeInputProcessor;
@@ -70,6 +72,11 @@ public class Othello extends ApplicationAdapter {
 	protected int[][] newBoard;
 	protected boolean newGame = true;
 
+	protected Stage homeStage;
+	protected Stage gameStage;
+	protected Table homeTable;
+	protected Table gameTable;
+
 	public void loadBoard() {
 		for (int i = 0; i <= 9; i++)
 			for (int j = 0; j <= 9; j++)
@@ -79,41 +86,34 @@ public class Othello extends ApplicationAdapter {
 	// 渲染主菜单
 	public void renderHome() {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
 		batch.begin();
+
+		// 绘制主菜单背景和标题
 		batch.draw(homeDefault, 0, 0);
 		titleFont.draw(batch, "Othello!", 480f, 540f);
+
+		// 绘制按钮
+		BitmapFont spFont, mpFont, ogFont, exitFont;
+		spFont = mpFont = ogFont = exitFont = buttonFont;
 		switch (menuButtonType) {
 			case OthelloConstants.MenuButtonType.NONE:
-				buttonFont.draw(batch, "Single Player", 100f, 290f);
-				buttonFont.draw(batch, "Multiple Player", 100f, 230f);
-				buttonFont.draw(batch, "Online Game", 100f, 170f);
-				buttonFont.draw(batch, "Exit", 100f, 110f);
 				break;
 			case OthelloConstants.MenuButtonType.LOCAL_SINGLE_PLAYER:
-				buttonFontBold.draw(batch, "Single Player", 100f, 290f);
-				buttonFont.draw(batch, "Multiple Player", 100f, 230f);
-				buttonFont.draw(batch, "Online Game", 100f, 170f);
-				buttonFont.draw(batch, "Exit", 100f, 110f);
-				break;
+				spFont = buttonFontBold; break;
 			case OthelloConstants.MenuButtonType.LOCAL_MULTIPLE_PLAYER:
-				buttonFont.draw(batch, "Single Player", 100f, 290f);
-				buttonFontBold.draw(batch, "Multiple Player", 100f, 230f);
-				buttonFont.draw(batch, "Online Game", 100f, 170f);
-				buttonFont.draw(batch, "Exit", 100f, 110f);
-				break;
+				mpFont = buttonFontBold; break;
 			case OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER:
-				buttonFont.draw(batch, "Single Player", 100f, 290f);
-				buttonFont.draw(batch, "Multiple Player", 100f, 230f);
-				buttonFontBold.draw(batch, "Online Game", 100f, 170f);
-				buttonFont.draw(batch, "Exit", 100f, 110f);
-				break;
+				ogFont = buttonFontBold; break;
 			case OthelloConstants.MenuButtonType.EXIT:
-				buttonFont.draw(batch, "Single Player", 100f, 290f);
-				buttonFont.draw(batch, "Multiple Player", 100f, 230f);
-				buttonFont.draw(batch, "Online Game", 100f, 170f);
-				buttonFontBold.draw(batch, "Exit", 100f, 110f);
-				break;
+				exitFont = buttonFontBold; break;
 		}
+
+		spFont.draw(batch, "Single Player", 100f, 290f);
+		mpFont.draw(batch, "Multiple Player", 100f, 230f);
+		ogFont.draw(batch, "Online Game", 100f, 170f);
+		exitFont.draw(batch, "Exit", 100f, 110f);
+
 		homeLogic();
 		batch.end();
 	}
@@ -171,21 +171,38 @@ public class Othello extends ApplicationAdapter {
 	// 主菜单逻辑
 	public void homeLogic() {
 		if (menuButtonPressed) {
+			if (menuButtonType != OthelloConstants.MenuButtonType.EXIT) {
+				homeStage = new Stage();
+				Gdx.input.setInputProcessor(homeStage);
+				homeTable = new Table();
+				homeTable.setFillParent(true);
+				homeStage.addActor(homeTable);
+			}
 			switch (menuButtonType) {
-				case OthelloConstants.MenuButtonType.LOCAL_SINGLE_PLAYER:
-					interfaceType = OthelloConstants.InterfaceType.SINGLE_PLAYER_MENU;
-					break;
-				case OthelloConstants.MenuButtonType.LOCAL_MULTIPLE_PLAYER:
-					interfaceType = OthelloConstants.InterfaceType.MULTIPLE_PLAYER_MENU;
-					break;
-				case OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER:
-					interfaceType = OthelloConstants.InterfaceType.ONLINE_MENU;
-					break;
 				case OthelloConstants.MenuButtonType.EXIT:
 					Gdx.app.exit();
 					break;
+				case OthelloConstants.MenuButtonType.LOCAL_SINGLE_PLAYER:
+					interfaceType = OthelloConstants.InterfaceType.LOCAL_SINGLE_PLAYER_MENU;
+					break;
+				case OthelloConstants.MenuButtonType.LOCAL_MULTIPLE_PLAYER:
+					interfaceType = OthelloConstants.InterfaceType.LOCAL_MULTIPLE_PLAYER_MENU;
+					break;
+				case OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER:
+					interfaceType = OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU;
+					break;
 				default: break;
 			}
+			menuButtonPressed = false;
+		}
+		switch (interfaceType) {
+			case OthelloConstants.InterfaceType.LOCAL_SINGLE_PLAYER_MENU:
+				renderLocalSinglePlayerMenu(); break;
+			case OthelloConstants.InterfaceType.LOCAL_MULTIPLE_PLAYER_MENU:
+				renderLocalMultiplePlayerMenu(); break;
+			case OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU:
+				renderOnlineMultiplePlayerMenu(); break;
+			default: break;
 		}
 	}
 
@@ -296,14 +313,8 @@ public class Othello extends ApplicationAdapter {
 				renderHome(); break;
 			case OthelloConstants.InterfaceType.GAME:
 				renderGame(); break;
-			case OthelloConstants.InterfaceType.SINGLE_PLAYER_MENU:
-				renderLocalSinglePlayerMenu(); break;
-			case OthelloConstants.InterfaceType.MULTIPLE_PLAYER_MENU:
-				renderLocalMultiplePlayerMenu(); break;
-			case OthelloConstants.InterfaceType.ONLINE_MENU:
-				renderOnlineMultiplePlayerMenu(); break;
+			default: break;
 		}
-
 	}
 	
 	@Override
