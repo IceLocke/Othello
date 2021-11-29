@@ -39,6 +39,7 @@ public class OthelloGame {
         this.player2 = p2;
         this.player1Score = 0;
         this.player2Score = 0;
+        this.playList = new ArrayList<>();
     }
 
     OthelloGame(Player p1, Player p2, String name) {
@@ -48,6 +49,7 @@ public class OthelloGame {
         this.player2 = p2;
         this.player1Score = 0;
         this.player2Score = 0;
+        this.playList = new ArrayList<>();
     }
 
     public int getGameID() {
@@ -92,18 +94,31 @@ public class OthelloGame {
             throw new Exception(String.format("Cannot find play id: %d", id));
     }
 
-    public OthelloPlay getNowPlay() throws Exception {
+    public OthelloPlay getNowPlay() {
         if (playList.size() > 0)
             return playList.get(playList.size() - 1);
-        else
-            throw new Exception("There is not play in the play list");
+        else return null;
     }
 
-    public int[][] getNowPlayBoard(){
+    public int[][] getNowPlayBoard() {
         if (playList.size() > 0)
             return playList.get(playList.size() - 1).getBoard();
         else
             return null;
+    }
+
+    public void setMaximumPlay(int maximumPlay) {
+        this.maximumPlay = maximumPlay;
+        return;
+    }
+
+    public void addPlay() {
+        String name = String.format("Play%d", playList.size() + 1);
+        playList.add(new OthelloPlay(player1, player2, new LocalOthelloCore(), name));
+    }
+
+    public void addPlay(String name) {
+        playList.add(new OthelloPlay(player1, player2, new LocalOthelloCore(), name));
     }
 
 }

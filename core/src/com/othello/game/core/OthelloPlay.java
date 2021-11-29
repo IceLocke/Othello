@@ -1,5 +1,6 @@
 package com.othello.game.core;
 
+import com.othello.game.Othello;
 import com.othello.game.player.Player;
 import com.othello.game.utils.Position;
 import com.othello.game.utils.Step;
@@ -69,6 +70,10 @@ public class OthelloPlay {
             case BLACK: return blackPlayer;
             default: return null; // BLANK
         }
+    }
+
+    public OthelloCore getCore() {
+        return this.core;
     }
 
     public Player getTurnPlayer() {

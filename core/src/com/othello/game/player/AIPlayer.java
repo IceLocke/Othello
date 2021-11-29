@@ -15,13 +15,21 @@ public class AIPlayer extends Player {
 
     private final int difficulty;
 
-    AIPlayer(int difficulty, int color, OthelloCore core) {
+    public AIPlayer(int difficulty, int color, OthelloCore core) {
         assert difficulty >= EASY && difficulty <= HARD;
         this.difficulty = difficulty;
         this.setColor(color);
         this.setPlayerID(-1);
         this.setCore(core);
-        this.setPlayerName("电脑玩家 - " + NAMES[difficulty]);
+        this.setPlayerName("AI - " + NAMES[difficulty]);
+    }
+
+    public AIPlayer(int difficulty, int color) {
+        assert difficulty >= EASY && difficulty <= HARD;
+        this.difficulty = difficulty;
+        this.setColor(color);
+        this.setPlayerID(-1);
+        this.setPlayerName("NPC - " + NAMES[difficulty]);
     }
 
     @Override

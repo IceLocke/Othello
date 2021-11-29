@@ -8,6 +8,20 @@ public class LocalOthelloCore extends OthelloCore {
         setBoard(board);
     }
 
+    public LocalOthelloCore() {
+        this.turnColor = BLACK;
+        board = new int[10][10];
+        board[4][4] = board[5][5] = WHITE;
+        board[4][5] = board[5][4] = BLACK;
+    }
+
+    public LocalOthelloCore(int turnColor) { // 默认棋盘
+        this.turnColor = turnColor;
+        board = new int[10][10];
+        board[4][4] = board[5][5] = WHITE;
+        board[4][5] = board[5][4] = BLACK;
+    }
+
     public boolean addStep(Step step) {
         assert step.getColor() == super.turnColor;
         if(!isValidPosition(step.getPosition(), step.getColor()))

@@ -31,6 +31,7 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.UBJsonReader;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.othello.game.core.OthelloGame;
+import com.othello.game.player.AIPlayer;
 import com.othello.game.player.LocalPlayer;
 import com.othello.game.player.Player;
 import com.othello.game.processor.HomeInputProcessor;
@@ -191,13 +192,13 @@ public class Othello extends ApplicationAdapter {
 			TextButton startButton = new TextButton("Start", skin);
 			TextButton backButton = new TextButton("Back", skin);
 			TextButton loadButton = new TextButton("Load", skin);
-			TextField player1TextField = new TextField("player1", skin);
-			TextField player2TextField = new TextField("player2", skin);
+			final TextField player1TextField = new TextField("player1", skin);
+			final TextField player2TextField = new TextField("player2", skin);
 			TextField serverAddressTextField = null;
-			SelectBox<String> difficultySelectBox = new SelectBox(skin);
-			SelectBox<String> gameRoundSelectBox = new SelectBox(skin);
+			final SelectBox<String> difficultySelectBox = new SelectBox(skin);
+			final SelectBox<String> gameRoundSelectBox = new SelectBox(skin);
 
-			difficultySelectBox.setItems("Easy", "Medium", "Hard");
+			difficultySelectBox.setItems("Easy", "Normal", "Hard");
 			gameRoundSelectBox.setItems("1", "3", "5");
 
 			switch (menuButtonType) {
@@ -207,7 +208,7 @@ public class Othello extends ApplicationAdapter {
 				case OthelloConstants.MenuButtonType.LOCAL_SINGLE_PLAYER:
 					interfaceType = OthelloConstants.InterfaceType.LOCAL_SINGLE_PLAYER_MENU;
 					titleLabel = new Label("Single Player", titleLabelStyle);
-					player2TextField.setText("Nanami");
+					player2TextField.setText("AI");
 					player2TextField.setDisabled(true);
 					break;
 				case OthelloConstants.MenuButtonType.LOCAL_MULTIPLE_PLAYER:
@@ -230,6 +231,7 @@ public class Othello extends ApplicationAdapter {
 				@Override
 				public void changed(ChangeEvent event, Actor actor) {
 					interfaceType = OthelloConstants.InterfaceType.HOME;
+					Gdx.input.setInputProcessor(new HomeInputProcessor());
 				}
 			});
 			loadButton.addListener(new ChangeListener() {
@@ -245,11 +247,47 @@ public class Othello extends ApplicationAdapter {
 					startButton.addListener(new ChangeListener() {
 						@Override
 						public void changed(ChangeEvent event, Actor actor) {
-							Player p1 = new LocalPlayer();
+							Player p1 = new LocalPlayer(1, player1TextField.getText(),
+									"data/skin/profile_photo.jpg", OthelloConstants.DiscType.BLACK);
+							int difficultyNum = 0;
+							switch (difficultySelectBox.getSelected()) {
+								case "Easy":
+									difficultyNum = OthelloConstants.AIDifficulty.EASY;
+									break;
+								case "Normal":
+									difficultyNum = OthelloConstants.AIDifficulty.NORMAL;
+									break;
+								case "Hard":
+									difficultyNum = OthelloConstants.AIDifficulty.HARD;
+									break;
+								default: break;
+							}
+							Player p2 = new AIPlayer(difficultyNum, OthelloConstants.DiscType.WHITE);
+							game = new OthelloGame(p1, p2);
+							game.setMaximumPlay(Integer.parseInt(gameRoundSelectBox.getSelected()));
+							game.addPlay();
+							p1.setCore(game.getNowPlay().getCore());
+							p2.setCore(game.getNowPlay().getCore());
+							interfaceType = OthelloConstants.InterfaceType.GAME;
 						}
 					});
 					break;
 				case OthelloConstants.InterfaceType.LOCAL_MULTIPLE_PLAYER_MENU:
+					startButton.addListener(new ChangeListener() {
+						@Override
+						public void changed(ChangeEvent event, Actor actor) {
+							Player p1 = new LocalPlayer(1, player1TextField.getText(),
+									"data/skin/profile_photo.jpg", OthelloConstants.DiscType.BLACK);
+							Player p2 = new LocalPlayer(2, player2TextField.getText(),
+									"data/skin/profile_photo.jpg", OthelloConstants.DiscType.WHITE);
+							game = new OthelloGame(p1, p2);
+							game.setMaximumPlay(Integer.parseInt(gameRoundSelectBox.getSelected()));
+							game.addPlay();
+							p1.setCore(game.getNowPlay().getCore());
+							p2.setCore(game.getNowPlay().getCore());
+							interfaceType = OthelloConstants.InterfaceType.GAME;
+						}
+					});
 					break;
 				default:
 					break;
