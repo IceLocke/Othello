@@ -71,20 +71,9 @@ public class Othello extends ApplicationAdapter {
 	protected boolean newGame = true;
 
 	public void loadBoard() {
-/*
-	    测试棋盘模型用
-		for (int i = 0; i <= 9; i++) {
+		for (int i = 0; i <= 9; i++)
 			for (int j = 0; j <= 9; j++)
-				newBoard[i][j] = OthelloConstants.DiscType.BLANK;
-		}
-		newBoard[4][4] = newBoard[5][5] = OthelloConstants.DiscType.WHITE;
-		newBoard[4][5] = newBoard[5][4] = OthelloConstants.DiscType.BLACK;
-*/
-		for (int i = 0; i <= 9; i++) {
-			for (int j = 0; j <= 9; j++) {
 				newBoard[i][j] = game.getNowPlayBoard()[i][j];
-			}
-		}
 	}
 
 	// 渲染主菜单
@@ -302,18 +291,17 @@ public class Othello extends ApplicationAdapter {
 
 	@Override
 	public void render () {
-		// camController.update();
 		switch (interfaceType) {
 			case OthelloConstants.InterfaceType.HOME:
-				renderHome();
-				break;
+				renderHome(); break;
 			case OthelloConstants.InterfaceType.GAME:
-				renderGame();
-				break;
+				renderGame(); break;
 			case OthelloConstants.InterfaceType.SINGLE_PLAYER_MENU:
-				renderLocalSinglePlayerMenu();
-				break;
+				renderLocalSinglePlayerMenu(); break;
 			case OthelloConstants.InterfaceType.MULTIPLE_PLAYER_MENU:
+				renderLocalMultiplePlayerMenu(); break;
+			case OthelloConstants.InterfaceType.ONLINE_MENU:
+				renderOnlineMultiplePlayerMenu(); break;
 		}
 
 	}
