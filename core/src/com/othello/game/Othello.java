@@ -23,7 +23,7 @@ import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.utils.UBJsonReader;
 import com.othello.game.core.OthelloGame;
 import com.othello.game.processor.HomeInputProcessor;
@@ -32,6 +32,8 @@ import com.othello.game.utils.DiscList;
 import com.othello.game.utils.OthelloConstants;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Random;
 
 public class Othello extends ApplicationAdapter {
 	public PerspectiveCamera cam;
@@ -56,6 +58,7 @@ public class Othello extends ApplicationAdapter {
 
 	public FreeTypeFontGenerator generator;
 	public FreeTypeFontGenerator generatorBold;
+	public BitmapFont font;
 	public BitmapFont titleFont;
 	public BitmapFont buttonFont;
 	public BitmapFont buttonFontBold;
@@ -72,10 +75,16 @@ public class Othello extends ApplicationAdapter {
 	protected int[][] newBoard;
 	protected boolean newGame = true;
 
+	protected Skin skin;
 	protected Stage homeStage;
 	protected Stage gameStage;
 	protected Table homeTable;
 	protected Table gameTable;
+	protected Label.LabelStyle labelStyle;
+	protected Label.LabelStyle titleLabelStyle;
+	protected TextButton.TextButtonStyle buttonStyle;
+	protected TextField.TextFieldStyle textFieldStyle;
+	protected SelectBox.SelectBoxStyle selectBoxStyle;
 
 	public void loadBoard() {
 		for (int i = 0; i <= 9; i++)
@@ -115,6 +124,12 @@ public class Othello extends ApplicationAdapter {
 		exitFont.draw(batch, "Exit", 100f, 110f);
 
 		homeLogic();
+
+		if (interfaceType != OthelloConstants.InterfaceType.HOME) {
+			homeStage.act(Gdx.graphics.getDeltaTime());
+			homeStage.draw();
+		}
+
 		batch.end();
 	}
 
@@ -154,20 +169,6 @@ public class Othello extends ApplicationAdapter {
 		modelBatch.end();
 	}
 
-	// 渲染本地双人对战选单
-	public void renderLocalMultiplePlayerMenu() {
-
-	}
-
-	// 渲染AI对战选单
-	public void renderLocalSinglePlayerMenu() {
-
-	}
-
-	public void renderOnlineMultiplePlayerMenu() {
-
-	}
-
 	// 主菜单逻辑
 	public void homeLogic() {
 		if (menuButtonPressed) {
@@ -176,33 +177,83 @@ public class Othello extends ApplicationAdapter {
 				Gdx.input.setInputProcessor(homeStage);
 				homeTable = new Table();
 				homeTable.setFillParent(true);
+				homeTable.setColor(new Color(0, 0, 0, 10));
 				homeStage.addActor(homeTable);
 			}
+
+			Label titleLabel = null;
+			Label player1Label = new Label("Player 1", labelStyle);
+			Label player2Label = new Label("Player 2", labelStyle);
+			Label difficultyLabel = new Label("Difficulty", labelStyle);
+			Label gameRoundLabel = new Label("Rounds", labelStyle);
+			Label serverAddressLabel = null;
+			TextButton startButton = new TextButton("Start", buttonStyle);
+			TextButton backButton = new TextButton("Back", buttonStyle);
+			TextField player1TextField = new TextField("player1", textFieldStyle);
+			TextField player2TextField = new TextField("player2", textFieldStyle);
+			TextField serverAddressTextField = null;
+//			SelectBox difficultySelectBox = new SelectBox(selectBoxStyle);
+//			SelectBox gameRoundSelectBox = new SelectBox(selectBoxStyle);
+
 			switch (menuButtonType) {
 				case OthelloConstants.MenuButtonType.EXIT:
 					Gdx.app.exit();
 					break;
 				case OthelloConstants.MenuButtonType.LOCAL_SINGLE_PLAYER:
 					interfaceType = OthelloConstants.InterfaceType.LOCAL_SINGLE_PLAYER_MENU;
+					titleLabel = new Label("Single Player", titleLabelStyle);
+					player2TextField.setText("Nanami");
+					player2TextField.setDisabled(true);
 					break;
 				case OthelloConstants.MenuButtonType.LOCAL_MULTIPLE_PLAYER:
 					interfaceType = OthelloConstants.InterfaceType.LOCAL_MULTIPLE_PLAYER_MENU;
+					titleLabel = new Label("Multiple Player", titleLabelStyle);
 					break;
 				case OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER:
 					interfaceType = OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU;
+					titleLabel = new Label("Multiple Player", titleLabelStyle);
+					serverAddressLabel = new Label("Server Address", labelStyle);
+					serverAddressTextField = new TextField("0.0.0.0", textFieldStyle);
 					break;
 				default: break;
 			}
 			menuButtonPressed = false;
-		}
-		switch (interfaceType) {
-			case OthelloConstants.InterfaceType.LOCAL_SINGLE_PLAYER_MENU:
-				renderLocalSinglePlayerMenu(); break;
-			case OthelloConstants.InterfaceType.LOCAL_MULTIPLE_PLAYER_MENU:
-				renderLocalMultiplePlayerMenu(); break;
-			case OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU:
-				renderOnlineMultiplePlayerMenu(); break;
-			default: break;
+
+			// 本地游戏的绘制
+			if (menuButtonType != OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER) {
+				homeTable.add(titleLabel);
+
+				homeTable.add(player1Label);
+				homeTable.add(player1TextField);
+
+				homeTable.add(player2Label);
+				homeTable.add(player2TextField);
+
+				homeTable.add(gameRoundLabel);
+//				homeTable.add(gameRoundSelectBox);
+
+				homeTable.add(difficultyLabel);
+//				homeTable.add(difficultySelectBox);
+
+				titleLabel.setPosition(10, 700);
+
+				player1Label.setPosition(10, 650);
+				player1TextField.setPosition(80, 650);
+
+				player2Label.setPosition(10, 620);
+				player2TextField.setPosition(80, 620);
+
+				gameRoundLabel.setPosition(10, 620);
+//				gameRoundSelectBox.setPosition(80, 620);
+
+				difficultyLabel.setPosition(10, 590);
+//				difficultySelectBox.setPosition(80, 590);
+			}
+
+			// 在线游戏的绘制
+			else {
+
+			}
 		}
 	}
 
@@ -220,7 +271,7 @@ public class Othello extends ApplicationAdapter {
 		interfaceType = OthelloConstants.InterfaceType.HOME;
 		batch = new SpriteBatch();
 
-		homeLoading = new Texture(Gdx.files.internal("menu/home_loading.png"));
+		homeLoading = new Texture(Gdx.files.internal("menu/home_blank.png"));
 		batch.begin();
 		batch.draw(homeLoading, 0, 0);
 		batch.end();
@@ -301,6 +352,22 @@ public class Othello extends ApplicationAdapter {
 		buttonFont = generator.generateFont(parameter);
 		parameter.borderWidth = 2;
 		buttonFontBold = generatorBold.generateFont(parameter);
+
+		parameter.size = 24;
+		parameter.borderWidth = 0;
+		font = generator.generateFont(parameter);
+
+		// 载入 UI 外观
+		labelStyle = new Label.LabelStyle();
+		titleLabelStyle = new Label.LabelStyle();
+		buttonStyle = new TextButton.TextButtonStyle();
+		textFieldStyle = new TextField.TextFieldStyle();
+		selectBoxStyle = new SelectBox.SelectBoxStyle();
+		labelStyle.font = font;
+		titleLabelStyle.font = buttonFont;
+		buttonStyle.font = buttonFont;
+		textFieldStyle.font = font;
+		selectBoxStyle.font = font;
 
 		Gdx.input.setInputProcessor(new HomeInputProcessor());
 		/* --- 主菜单 UI 初始化结束 --- */
