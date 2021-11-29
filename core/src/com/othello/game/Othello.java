@@ -22,13 +22,17 @@ import com.badlogic.gdx.graphics.g3d.loader.ObjLoader;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.UBJsonReader;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.othello.game.core.OthelloGame;
+import com.othello.game.player.LocalPlayer;
+import com.othello.game.player.Player;
 import com.othello.game.processor.HomeInputProcessor;
 import com.othello.game.utils.Disc;
 import com.othello.game.utils.DiscList;
@@ -222,7 +226,37 @@ public class Othello extends ApplicationAdapter {
 			}
 			menuButtonPressed = false;
 
+			backButton.addListener(new ChangeListener() {
+				@Override
+				public void changed(ChangeEvent event, Actor actor) {
+					interfaceType = OthelloConstants.InterfaceType.HOME;
+				}
+			});
+			loadButton.addListener(new ChangeListener() {
+				@Override
+				public void changed(ChangeEvent event, Actor actor) {
+					game = new OthelloGame(Gdx.files.internal("othello.save"));
+					interfaceType = OthelloConstants.InterfaceType.GAME;
+				}
+			});
+
+			switch (interfaceType) {
+				case OthelloConstants.InterfaceType.LOCAL_SINGLE_PLAYER_MENU:
+					startButton.addListener(new ChangeListener() {
+						@Override
+						public void changed(ChangeEvent event, Actor actor) {
+							Player p1 = new LocalPlayer();
+						}
+					});
+					break;
+				case OthelloConstants.InterfaceType.LOCAL_MULTIPLE_PLAYER_MENU:
+					break;
+				default:
+					break;
+			}
+
 			// 本地游戏的绘制
+			homeTable.setBackground(skin.newDrawable("white", new Color(0x54BCB5ff)));
 			if (menuButtonType != OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER) {
 				homeTable.align(Align.center);
 				homeTable.add(blankLabel);
@@ -369,7 +403,7 @@ public class Othello extends ApplicationAdapter {
 
 		// 载入 UI 外观
 		blackBackground = new Texture(Gdx.files.internal("menu/black_background.png"));
-		skin = new Skin(Gdx.files.internal("data/uiskin.json"));
+		skin = new Skin(Gdx.files.internal("data/skin/skin-composer-ui.json"));
 		labelStyle = new Label.LabelStyle();
 		titleLabelStyle = new Label.LabelStyle();
 		buttonStyle = new TextButton.TextButtonStyle();

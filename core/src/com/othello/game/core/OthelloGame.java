@@ -1,9 +1,12 @@
 package com.othello.game.core;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import com.othello.game.player.Player;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.logging.FileHandler;
 
 public class OthelloGame {
     private static int gameCount = 0;
@@ -25,11 +28,11 @@ public class OthelloGame {
     private int player2Score;
     private boolean over;
 
-    OthelloGame(File save) {
+    public OthelloGame(FileHandle file) {
 
     }
 
-    OthelloGame(Player p1, Player p2) {
+    public OthelloGame(Player p1, Player p2) {
         this.gameID = ++OthelloGame.gameCount;
         this.gameName = String.format("Game%d", this.gameID);
         this.player1 = p1;
