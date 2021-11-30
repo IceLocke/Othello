@@ -2,13 +2,11 @@ package com.othello.game;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.assets.loaders.ModelLoader;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.InputMultiplexer;
+import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.graphics.g3d.Environment;
@@ -16,6 +14,9 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.decals.CameraGroupStrategy;
+import com.badlogic.gdx.graphics.g3d.decals.Decal;
+import com.badlogic.gdx.graphics.g3d.decals.DecalBatch;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.loader.G3dModelLoader;
 import com.badlogic.gdx.graphics.g3d.loader.ObjLoader;
@@ -26,7 +27,6 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.UBJsonReader;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -34,6 +34,7 @@ import com.othello.game.core.OthelloGame;
 import com.othello.game.player.AIPlayer;
 import com.othello.game.player.LocalPlayer;
 import com.othello.game.player.Player;
+import com.othello.game.processor.GameInputProcessor;
 import com.othello.game.processor.HomeInputProcessor;
 import com.othello.game.utils.Disc;
 import com.othello.game.utils.DiscList;
@@ -74,9 +75,14 @@ public class Othello extends ApplicationAdapter {
 	public static boolean menuButtonPressed = false;
 
 	protected SpriteBatch batch;
+	protected DecalBatch decalBatch;
 	protected Texture homeLoading;
 	protected Texture homeDefault;
-	protected Texture blackBackground;
+	protected Texture homeButtonTexture;
+	protected Texture saveButtonTexture;
+	protected Texture backButtonTexture;
+	protected Texture defaultBlackPlayerProfilePhoto;
+	protected Texture defaultWhitePlayerProfilePhoto;
 	protected OthelloGame game;
 	protected int[][] board;
 	protected int[][] newBoard;
@@ -86,7 +92,11 @@ public class Othello extends ApplicationAdapter {
 	protected Stage homeStage;
 	protected Stage gameStage;
 	protected Table homeTable;
-	protected Table gameTable;
+	protected Table gameButtonTable;
+	protected Table playerTable;
+	protected Label gameRoundLabel;
+	protected Label player1WinCountLabel;
+	protected Label player2WinCountLabel;
 	protected Label.LabelStyle labelStyle;
 	protected Label.LabelStyle titleLabelStyle;
 	protected TextButton.TextButtonStyle buttonStyle;
@@ -139,7 +149,7 @@ public class Othello extends ApplicationAdapter {
 	public void renderGame(){
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
-
+		// 棋盘 3D 部分
 		loadBoard();
 		for (int i = 1; i <= 8; i++) {
 			for (int j = 1; j <= 8; j++) {
@@ -165,10 +175,14 @@ public class Othello extends ApplicationAdapter {
 		for (Disc disc : discArrayList) {
 			disc.animationController.update(Gdx.graphics.getDeltaTime());
 		}
-
 		modelBatch.begin(cam);
 		modelBatch.render(renderInstanceList, environment);
 		modelBatch.end();
+
+		gameRoundLabel.setText(String.format("Round %d/%d", 1, game.getMaximumPlay()));
+		player1WinCountLabel.setText(String.format("Wins: %d", game.getPlayer1Score()));
+		player2WinCountLabel.setText(String.format("Wins: %d", game.getPlayer2Score()));
+		gameStage.draw();
 	}
 
 	// 主菜单逻辑
@@ -187,7 +201,7 @@ public class Othello extends ApplicationAdapter {
 			Label player1Label = new Label("Player 1", labelStyle);
 			Label player2Label = new Label("Player 2", labelStyle);
 			Label difficultyLabel = new Label("Difficulty", labelStyle);
-			Label gameRoundLabel = new Label("Rounds", labelStyle);
+			final Label gameRoundLabel = new Label("Rounds", labelStyle);
 			Label serverAddressLabel = null;
 			TextButton startButton = new TextButton("Start", skin);
 			TextButton backButton = new TextButton("Back", skin);
@@ -239,6 +253,7 @@ public class Othello extends ApplicationAdapter {
 				public void changed(ChangeEvent event, Actor actor) {
 					game = new OthelloGame(Gdx.files.internal("othello.save"));
 					interfaceType = OthelloConstants.InterfaceType.GAME;
+					Gdx.input.setInputProcessor(new GameInputProcessor());
 				}
 			});
 
@@ -264,11 +279,14 @@ public class Othello extends ApplicationAdapter {
 							}
 							Player p2 = new AIPlayer(difficultyNum, OthelloConstants.DiscType.WHITE);
 							game = new OthelloGame(p1, p2);
+							game.setMode(OthelloConstants.GameMode.LOCAL_SINGLE_PLAYER);
 							game.setMaximumPlay(Integer.parseInt(gameRoundSelectBox.getSelected()));
 							game.addPlay();
 							p1.setCore(game.getNowPlay().getCore());
 							p2.setCore(game.getNowPlay().getCore());
 							interfaceType = OthelloConstants.InterfaceType.GAME;
+							initHUD();
+							Gdx.input.setInputProcessor(new InputMultiplexer(new GameInputProcessor(), gameStage));
 						}
 					});
 					break;
@@ -281,13 +299,18 @@ public class Othello extends ApplicationAdapter {
 							Player p2 = new LocalPlayer(2, player2TextField.getText(),
 									"data/skin/profile_photo.jpg", OthelloConstants.DiscType.WHITE);
 							game = new OthelloGame(p1, p2);
+							game.setMode(OthelloConstants.GameMode.LOCAL_MULTIPLE_PLAYER);
 							game.setMaximumPlay(Integer.parseInt(gameRoundSelectBox.getSelected()));
 							game.addPlay();
 							p1.setCore(game.getNowPlay().getCore());
 							p2.setCore(game.getNowPlay().getCore());
 							interfaceType = OthelloConstants.InterfaceType.GAME;
+							initHUD();
+							Gdx.input.setInputProcessor(new InputMultiplexer(new GameInputProcessor(), gameStage));
 						}
 					});
+					break;
+				case OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU:
 					break;
 				default:
 					break;
@@ -296,40 +319,29 @@ public class Othello extends ApplicationAdapter {
 			// 本地游戏的绘制
 			homeTable.setBackground(skin.newDrawable("white", new Color(0x54BCB5ff)));
 			if (menuButtonType != OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER) {
-				homeTable.align(Align.center);
-				homeTable.add(blankLabel);
-				homeTable.add(titleLabel);
-				homeTable.add(blankLabel);
+				homeTable.add(blankLabel).width(120);
+				homeTable.add(titleLabel).height(100);
+				homeTable.add(blankLabel).width(100);
 				homeTable.row();
-				homeTable.add(blankLabel);
-				homeTable.row();
-				homeTable.add(player1Label);
-				homeTable.add(blankLabel);
+				homeTable.add(player1Label).height(80).width(100);
+				homeTable.add(blankLabel).width(100);
 				homeTable.add(player1TextField);
 				homeTable.row();
-				homeTable.add(blankLabel);
-				homeTable.row();
-				homeTable.add(player2Label);
-				homeTable.add(blankLabel);
+				homeTable.add(player2Label).height(80).width(100);
+				homeTable.add(blankLabel).width(100);
 				homeTable.add(player2TextField);
 				homeTable.row();
-				homeTable.add(blankLabel);
-				homeTable.row();
-				homeTable.add(gameRoundLabel);
-				homeTable.add(blankLabel);
+				homeTable.add(gameRoundLabel).width(100).height(80);
+				homeTable.add(blankLabel).width(100);
 				homeTable.add(gameRoundSelectBox);
 				homeTable.row();
-				homeTable.add(blankLabel);
-				homeTable.row();
-				homeTable.add(difficultyLabel);
-				homeTable.add(blankLabel);
+				homeTable.add(difficultyLabel).width(100).height(80);
+				homeTable.add(blankLabel).width(100);
 				homeTable.add(difficultySelectBox);
 				homeTable.row();
-				homeTable.add(blankLabel);
-				homeTable.row();
-				homeTable.add(startButton);
-				homeTable.add(loadButton);
-				homeTable.add(backButton);
+				homeTable.add(startButton).width(100);
+				homeTable.add(loadButton).width(100);
+				homeTable.add(backButton).width(100);
 			}
 
 			// 在线游戏的绘制
@@ -337,6 +349,71 @@ public class Othello extends ApplicationAdapter {
 
 			}
 		}
+	}
+
+	public void initHUD() {
+		gameStage = new Stage();
+		gameButtonTable = new Table();
+		playerTable = new Table();
+		TextButton homeButton = new TextButton("Home", skin);
+		TextButton saveButton = new TextButton("Save", skin);
+		TextButton backButton = new TextButton("Back", skin);
+		Image p1ProfilePhoto = new Image(defaultBlackPlayerProfilePhoto);
+		Image p2ProfilePhoto = new Image(defaultWhitePlayerProfilePhoto);
+
+		gameButtonTable.add(homeButton);
+		if (interfaceType != OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU)
+			gameButtonTable.add(saveButton).padLeft(30);
+		gameButtonTable.add(backButton).padLeft(30);
+		gameButtonTable.setPosition(150, 50);
+
+		homeButton.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				interfaceType = OthelloConstants.InterfaceType.HOME;
+				Gdx.input.setInputProcessor(new HomeInputProcessor());
+			}
+		});
+
+		saveButton.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				game.save();
+				final Dialog dialog = new Dialog("Saved", skin);
+				dialog.text(new Label("Game has been saved", skin));
+				dialog.button("OK");
+				dialog.getButtonTable().addListener(new ChangeListener() {
+					@Override
+					public void changed(ChangeEvent event, Actor actor) {
+						dialog.remove();
+					}
+				});
+				dialog.setPosition(640, 360);
+				gameStage.addActor(dialog);
+			}
+		});
+
+		player1WinCountLabel = new Label("0", labelStyle);
+		player2WinCountLabel = new Label("0", labelStyle);
+
+		playerTable.add(p1ProfilePhoto).size(80, 80);
+		playerTable.add(new Label(game.getPlayer1().getPlayerName(), labelStyle)).padLeft(10).center();
+		playerTable.row();
+		playerTable.add(player1WinCountLabel);
+		playerTable.row();
+		playerTable.add(p2ProfilePhoto).size(80, 80).padTop(50);
+		playerTable.add(new Label(game.getPlayer2().getPlayerName(), labelStyle)).padLeft(10).padTop(50).center();
+		playerTable.row();
+		playerTable.add(player2WinCountLabel);
+
+		playerTable.setPosition(150, 530);
+
+		gameRoundLabel = new Label(String.format("Round %d/%d", 1, game.getMaximumPlay()), titleLabelStyle);
+		gameRoundLabel.setPosition(1100, 640);
+
+		gameStage.addActor(gameRoundLabel);
+		gameStage.addActor(playerTable);
+		gameStage.addActor(gameButtonTable);
 	}
 
 	// 本地对战逻辑
@@ -361,9 +438,9 @@ public class Othello extends ApplicationAdapter {
 		/* --- 3D 部分初始化开始 --- */
 
 		// 初始化相机
-		cam = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		cam.position.set(3f, 7f, 1f);
-		cam.lookAt(3f, 0f, -2.5f);
+		cam = new PerspectiveCamera(60, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		cam.position.set(3f, 8f, -3.5f);
+		cam.lookAt(3f, 0f, -4f);
 		cam.near = 1f;
 		cam.far = 300f;
 		cam.update();
@@ -440,7 +517,9 @@ public class Othello extends ApplicationAdapter {
 		font = generator.generateFont(parameter);
 
 		// 载入 UI 外观
-		blackBackground = new Texture(Gdx.files.internal("menu/black_background.png"));
+		defaultBlackPlayerProfilePhoto = new Texture(Gdx.files.internal("profile_photo/black_default.png"));
+		defaultWhitePlayerProfilePhoto = new Texture(Gdx.files.internal("profile_photo/white_default.png"));
+
 		skin = new Skin(Gdx.files.internal("data/skin/skin-composer-ui.json"));
 		labelStyle = new Label.LabelStyle();
 		titleLabelStyle = new Label.LabelStyle();

@@ -17,7 +17,7 @@ public class Disc {
     public static final float boardScale = 1.05f;
     public static final float zPosShifting = -8.5f * boardScale;
     public static final float xPosShifting = -1.5f * boardScale;
-    public static final float yPosShifting = 0.12f;
+    public static final float yPosShifting = 0.2f;
 
     public Disc(int x, int y, int upColor, ModelInstance modelInstance, AnimationController animationController) {
         this.x = x;

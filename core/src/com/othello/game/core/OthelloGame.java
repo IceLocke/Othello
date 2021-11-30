@@ -107,6 +107,18 @@ public class OthelloGame {
             return null;
     }
 
+    public int getMode() {
+        return mode;
+    }
+
+    public int getMaximumPlay() {
+        return maximumPlay;
+    }
+
+    public void setMode(int mode) {
+        this.mode = mode;
+    }
+
     public void setMaximumPlay(int maximumPlay) {
         this.maximumPlay = maximumPlay;
         return;
@@ -119,6 +131,10 @@ public class OthelloGame {
 
     public void addPlay(String name) {
         playList.add(new OthelloPlay(player1, player2, new LocalOthelloCore(), name));
+    }
+
+    public void save() {
+
     }
 
 }
