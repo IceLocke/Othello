@@ -354,9 +354,9 @@ public class Othello extends ApplicationAdapter {
 
 		gameButtonTable.add(homeButton);
 		if (interfaceType != OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU)
-			gameButtonTable.add(saveButton).padLeft(30);
-		gameButtonTable.add(backButton).padLeft(30);
-		gameButtonTable.setPosition(150, 50);
+			gameButtonTable.add(saveButton).padLeft(10);
+		gameButtonTable.add(backButton).padLeft(10);
+		gameButtonTable.setPosition(100, 50);
 
 		homeButton.addListener(new ChangeListener() {
 			@Override
@@ -399,7 +399,7 @@ public class Othello extends ApplicationAdapter {
 		playerTable.row();
 		playerTable.add(player2WinCountLabel);
 
-		playerTable.setPosition(150, 530);
+		playerTable.setPosition(110, 530);
 
 		gameRoundLabel = new Label(String.format("Round %d/%d", 1, game.getMaximumPlay()), titleLabelStyle);
 		gameRoundLabel.setPosition(1100, 640);
