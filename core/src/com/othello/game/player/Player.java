@@ -80,5 +80,5 @@ public abstract class Player {
         ++winCount;
     }
 
-    abstract public boolean addStep(Step step);
+    abstract public void addStep();
 }

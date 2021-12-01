@@ -4,7 +4,5 @@ import com.othello.game.utils.Step;
 
 public class OnlinePlayer extends Player {
     @Override
-    public boolean addStep(Step step) {
-        return true;
-    }
+    public void addStep() {}
 }

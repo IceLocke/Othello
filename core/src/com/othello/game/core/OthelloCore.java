@@ -52,6 +52,8 @@ public abstract class OthelloCore {
     }
 
     public boolean isValidPosition(Position position, int color) {
+        if(this.getBoard()[position.getX()][position.getY()] != BLANK)
+            return false;
         final int[] dx = {1, 1, 1, 0, 0, -1, -1, -1};
         final int[] dy = {1, 0, -1, 1, -1, 1, 0, -1};
         int x = position.getX();

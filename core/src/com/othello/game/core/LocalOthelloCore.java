@@ -46,9 +46,13 @@ public class LocalOthelloCore extends OthelloCore {
             }
         }
         board[x][y] = turnColor;
-        reverseColor();
         if(getValidPosition(WHITE).size() == 0 && getValidPosition(BLACK).size() == 0)
             over = true;
+        else if(getValidPosition(-turnColor).size() != 0) // 注意！只有在可行时换人下
+            reverseColor();
+        else {
+            // 提示该玩家再走一步，但应该不是core来做
+        }
         return true;
     }
 }
