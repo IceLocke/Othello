@@ -112,14 +112,14 @@ public class AIPlayer extends Player {
             case HARD:
                 /*
                 * 设计逻辑：（假设自己执黑）
-                * 1，步数不少于50时，看做经典有向图游戏求SG函数
+                * 1，步数不少于48时，看做经典有向图游戏求SG函数
                 * 2，否则，抢角
                 * 3，否则，尝试下在边上，满足下一步不会被对手翻回
                 * 4，否则，选令对手行动力最小的一步（优先非星位）
                 * */
 
                 // 1
-                if(getStepCnt() >= 45) {
+                if(getStepCnt() >= 48) {
                     for(Position position : validPosition) { // 如果存在必胜策略，只需知道这一步走什么
                         OthelloCore predictor = new LocalOthelloCore(this.getColor(), this.getCore().getBoard());
                         if(SG(this.getColor(), predictor)) { // 这一步必胜
