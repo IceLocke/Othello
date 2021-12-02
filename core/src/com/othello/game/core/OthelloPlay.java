@@ -20,7 +20,7 @@ public class OthelloPlay {
     Player whitePlayer;
     Player blackPlayer;
 
-    public OthelloPlay(Player whitePlayer, Player blackPlayer, OthelloCore core, String name) {
+    public OthelloPlay(Player blackPlayer, Player whitePlayer, OthelloCore core, String name) {
         this.whitePlayer = whitePlayer;
         this.blackPlayer = blackPlayer;
         this.core = core;
@@ -30,7 +30,7 @@ public class OthelloPlay {
         this.playName = name;
     }
 
-    public OthelloPlay(Player whitePlayer, Player blackPlayer, OthelloCore core) {
+    public OthelloPlay(Player blackPlayer, Player whitePlayer, OthelloCore core) {
         this.whitePlayer = whitePlayer;
         this.blackPlayer = blackPlayer;
         this.core = core;

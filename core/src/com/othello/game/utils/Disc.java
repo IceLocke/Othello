@@ -51,11 +51,7 @@ public class Disc {
     }
 
     public void rotate() {
-        if(upColor == OthelloConstants.DiscType.BLACK)
-            modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 180);
-        else
-            modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 0);
-        modelInstance.calculateTransforms();
+        modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 180);
     }
 
     public static void setPosition(Disc disc, int x, int y) {

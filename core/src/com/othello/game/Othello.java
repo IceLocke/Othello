@@ -140,6 +140,7 @@ public class Othello extends ApplicationAdapter {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 		// 棋盘 3D 部分
 		loadBoard();
+		localGameLogic();
 		for (int i = 1; i <= 8; i++) {
 			for (int j = 1; j <= 8; j++) {
 				if (board[i][j] != newBoard[i][j]) {
@@ -276,7 +277,7 @@ public class Othello extends ApplicationAdapter {
 							p2.setCore(game.getNowPlay().getCore());
 							interfaceType = OthelloConstants.InterfaceType.GAME;
 							initHUD();
-							Gdx.input.setInputProcessor(new InputMultiplexer(new GameInputProcessor(), gameStage));
+							Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
 						}
 					});
 					break;
@@ -295,8 +296,9 @@ public class Othello extends ApplicationAdapter {
 							p1.setCore(game.getNowPlay().getCore());
 							p2.setCore(game.getNowPlay().getCore());
 							interfaceType = OthelloConstants.InterfaceType.GAME;
+							System.out.println(game.getNowPlay().getTurnPlayer().getColor());
 							initHUD();
-							Gdx.input.setInputProcessor(new InputMultiplexer(new GameInputProcessor(), gameStage));
+							Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
 						}
 					});
 					break;
@@ -412,8 +414,19 @@ public class Othello extends ApplicationAdapter {
 	// 本地对战逻辑
 	public void localGameLogic() {
 		if (boardClicked) {
+			System.out.printf("Othello: detected click, at position: %d %d\n", boardClickPosition.getX(), boardClickPosition.getY());
 			boardClicked = false;
-			game.getNowPlay().getTurnPlayer().addStep(new Step(boardClickPosition, game.getNowPlay().getTurnPlayer().getColor()));
+			System.out.printf("Othello: addStep(%d, %d, %d)\n", boardClickPosition.getX(), boardClickPosition.getY(), game.getNowPlay().getTurnPlayer().getColor());
+			game.getNowPlay().getTurnPlayer().addStep(
+					new Step(boardClickPosition, game.getNowPlay().getTurnPlayer().getColor())
+			);
+			if (game.getMode() == OthelloConstants.GameMode.LOCAL_SINGLE_PLAYER)
+				game.getNowPlay().getTurnPlayer().addStep();
+			for (int i = 1; i <= 8; i++) {
+				for (int j = 1; j <= 8; j++)
+					System.out.printf("%d ", game.getNowPlayBoard()[i][j]);
+				System.out.println("");
+			}
 		}
 	}
 
@@ -431,6 +444,8 @@ public class Othello extends ApplicationAdapter {
 		batch.begin();
 		batch.draw(homeLoading, 0, 0);
 		batch.end();
+
+		System.out.println(Gdx.graphics.getDeltaTime());
 
 		/* --- 3D 部分初始化开始 --- */
 
@@ -531,6 +546,8 @@ public class Othello extends ApplicationAdapter {
 
 		Gdx.input.setInputProcessor(new HomeInputProcessor());
 		/* --- 主菜单 UI 初始化结束 --- */
+
+		System.out.println(Gdx.graphics.getDeltaTime());
 	}
 
 	@Override
