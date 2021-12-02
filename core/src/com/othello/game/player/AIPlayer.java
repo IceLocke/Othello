@@ -96,6 +96,11 @@ public class AIPlayer extends Player {
     }
 
     @Override
+    public void addStep(Step step) {
+        ;
+    }
+
+    @Override
     public void addStep() {
         ArrayList<Position> validPosition = getCore().getValidPosition();
         assert validPosition.size() != 0;

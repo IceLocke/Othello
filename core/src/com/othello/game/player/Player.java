@@ -81,4 +81,5 @@ public abstract class Player {
     }
 
     abstract public void addStep();
+    abstract public void addStep(Step step);
 }

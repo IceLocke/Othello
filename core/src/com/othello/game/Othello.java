@@ -30,9 +30,7 @@ import com.othello.game.player.LocalPlayer;
 import com.othello.game.player.Player;
 import com.othello.game.processor.GameInputProcessor;
 import com.othello.game.processor.HomeInputProcessor;
-import com.othello.game.utils.Disc;
-import com.othello.game.utils.DiscList;
-import com.othello.game.utils.OthelloConstants;
+import com.othello.game.utils.*;
 
 import java.util.ArrayList;
 
@@ -66,6 +64,8 @@ public class Othello extends ApplicationAdapter {
 	public static int interfaceType = OthelloConstants.InterfaceType.HOME;
 	public static int menuButtonType = OthelloConstants.MenuButtonType.NONE;
 	public static boolean menuButtonPressed = false;
+	public static boolean boardClicked = false;
+	public static Position boardClickPosition;
 
 	protected SpriteBatch batch;
 	protected Texture homeLoading;
@@ -127,7 +127,6 @@ public class Othello extends ApplicationAdapter {
 			exitFont.draw(batch, "Exit", 100f, 110f);
 		}
 		homeLogic();
-		// 桌面菜单 UI 的绘制
 		if (interfaceType != OthelloConstants.InterfaceType.HOME) {
 			homeStage.act(Gdx.graphics.getDeltaTime());
 			homeStage.draw();
@@ -161,7 +160,6 @@ public class Othello extends ApplicationAdapter {
 			}
 		}
 
-		// 3D 部分的渲染
 		ArrayList<Disc> discArrayList = discList.getDiscList();
 		for (Disc disc : discArrayList) {
 			disc.animationController.update(Gdx.graphics.getDeltaTime());
@@ -170,7 +168,6 @@ public class Othello extends ApplicationAdapter {
 		modelBatch.render(renderInstanceList, environment);
 		modelBatch.end();
 
-		// HUD 部分的渲染
 		gameRoundLabel.setText(String.format("Round %d/%d", 1, game.getMaximumPlay()));
 		player1WinCountLabel.setText(String.format("Wins: %d", game.getPlayer1Score()));
 		player2WinCountLabel.setText(String.format("Wins: %d", game.getPlayer2Score()));
@@ -180,7 +177,6 @@ public class Othello extends ApplicationAdapter {
 	// 主菜单逻辑
 	public void homeLogic() {
 		if (menuButtonPressed) {
-			// 按下按钮后，进行菜单 UI 的初始化
 			if (menuButtonType != OthelloConstants.MenuButtonType.EXIT) {
 				homeStage = new Stage(new ScreenViewport());
 				Gdx.input.setInputProcessor(homeStage);
@@ -208,7 +204,6 @@ public class Othello extends ApplicationAdapter {
 			difficultySelectBox.setItems("Easy", "Normal", "Hard");
 			gameRoundSelectBox.setItems("1", "3", "5");
 
-			// 根据不同的菜单类型初始化菜单
 			switch (menuButtonType) {
 				case OthelloConstants.MenuButtonType.EXIT:
 					Gdx.app.exit();
@@ -235,7 +230,6 @@ public class Othello extends ApplicationAdapter {
 			}
 			menuButtonPressed = false;
 
-			// 给按钮添加监听器
 			backButton.addListener(new ChangeListener() {
 				@Override
 				public void changed(ChangeEvent event, Actor actor) {
@@ -252,7 +246,6 @@ public class Othello extends ApplicationAdapter {
 				}
 			});
 
-			// 根据不同的菜单类型添加不同的初始化类型
 			switch (interfaceType) {
 				case OthelloConstants.InterfaceType.LOCAL_SINGLE_PLAYER_MENU:
 					startButton.addListener(new ChangeListener() {
@@ -314,7 +307,7 @@ public class Othello extends ApplicationAdapter {
 					break;
 			}
 
-			// 本地游戏菜单的布局
+			// 本地游戏的绘制
 			homeTable.setBackground(skin.newDrawable("white", new Color(0x54BCB5ff)));
 			if (menuButtonType != OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER) {
 				homeTable.add(blankLabel).width(120);
@@ -342,14 +335,13 @@ public class Othello extends ApplicationAdapter {
 				homeTable.add(backButton).width(100);
 			}
 
-			// 在线游戏菜单 UI 的布局
+			// 在线游戏的绘制
 			else {
 
 			}
 		}
 	}
 
-	// 初始化游戏内的 HUD
 	public void initHUD() {
 		gameStage = new Stage();
 		gameButtonTable = new Table();
@@ -419,6 +411,10 @@ public class Othello extends ApplicationAdapter {
 
 	// 本地对战逻辑
 	public void localGameLogic() {
+		if (boardClicked) {
+			boardClicked = false;
+			game.getNowPlay().getTurnPlayer().addStep(new Step(boardClickPosition, game.getNowPlay().getTurnPlayer().getColor()));
+		}
 	}
 
 	// 在线对战逻辑

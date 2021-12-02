@@ -25,5 +25,11 @@ public class LocalPlayer extends Player {
     }
 
     @Override
-    public void addStep() {}
+    public void addStep(Step step) {
+        this.getCore().addStep(step);
+    }
+
+    @Override
+    public void addStep() {
+    }
 }
