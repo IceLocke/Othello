@@ -432,9 +432,15 @@ public class Othello extends ApplicationAdapter {
 
 	// 本地对战逻辑
 	public void localGameLogic() {
-		if(game.getNowPlayer().getClass().equals(AIPlayer.class)) {
+		if(game.getNowPlayer().getID() == -1) {
 			System.out.println("AI Thinking...");
 			game.getNowPlayer().addStep();
+
+			for (int i = 1; i <= 8; i++) {
+				for (int j = 1; j <= 8; j++)
+					System.out.printf("%d ", game.getNowPlayBoard()[i][j]);
+				System.out.println("");
+			}
 		} else if (boardClicked) {
 			System.out.printf("Othello: detected click, at position: %d %d\n", boardClickPosition.getX(), boardClickPosition.getY());
 			boardClicked = false;
@@ -442,12 +448,12 @@ public class Othello extends ApplicationAdapter {
 			game.getNowPlayer().addStep(
 					new Step(boardClickPosition, game.getNowPlay().getTurnColor())
 			);
-		}
 
-		for (int i = 1; i <= 8; i++) {
-			for (int j = 1; j <= 8; j++)
-				System.out.printf("%d ", game.getNowPlayBoard()[i][j]);
-			System.out.println("");
+			for (int i = 1; i <= 8; i++) {
+				for (int j = 1; j <= 8; j++)
+					System.out.printf("%d ", game.getNowPlayBoard()[i][j]);
+				System.out.println("");
+			}
 		}
 	}
 

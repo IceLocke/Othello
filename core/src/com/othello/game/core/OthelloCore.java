@@ -21,6 +21,7 @@ public abstract class OthelloCore {
     }
 
     public void refresh() {
+        over = false;
         this.turnColor = BLACK;
         board[4][4] = board[5][5] = WHITE;
         board[4][5] = board[5][4] = BLACK;

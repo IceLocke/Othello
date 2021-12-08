@@ -16,6 +16,9 @@ public class LocalOthelloCore extends OthelloCore {
     }
 
     public boolean addStep(Step step) {
+        if(step.getColor() != super.turnColor) {
+            System.out.println("LocalOthelloCore: WHO???");
+        }
         assert step.getColor() == super.turnColor;
         if(!isValidPosition(step.getPosition(), step.getColor()))
             return false;
@@ -38,12 +41,13 @@ public class LocalOthelloCore extends OthelloCore {
                     }
             }
         }
-        board[x][y] = turnColor;
+        board[x][y] = super.turnColor;
         if(getValidPosition(WHITE).size() == 0 && getValidPosition(BLACK).size() == 0)
-            over = true;
+            super.over = true;
         else if(getValidPosition(-turnColor).size() != 0) // 注意！只有在可行时换人下
             reverseColor();
         else {
+            System.out.println("LocalOthelloCore: Once More!");
             // 提示该玩家再走一步，但应该不是core来做
         }
         return true;

@@ -202,10 +202,13 @@ public class AIPlayer extends Player {
     @Override
     public void addStep() {
         if(this.getCore().getTurnColor() != this.getColor()) {
-            System.out.println("NoNoNo");
+            System.out.println("AIPlayer: Not my turn!");
         }
         assert this.getCore().getTurnColor() == this.getColor();
         ArrayList<Position> validPosition = getCore().getValidPosition();
+        if(validPosition.size() == 0) {
+            System.out.println("AIPlayer: Nowhere to put!");
+        }
         assert validPosition.size() != 0;
         switch(this.difficulty) {
             case EASY:
