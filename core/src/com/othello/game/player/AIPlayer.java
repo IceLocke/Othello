@@ -108,15 +108,15 @@ public class AIPlayer extends Player {
         assert validPosition.size() != 0;
         if(core.getTurnColor() == color) { // 如果当前是自己在走，存在必胜决策即可
             for(Position position : validPosition) {
-                OthelloCore predictor = new LocalOthelloCore(color, core.getBoard());
-                predictor.addStep(new Step(position, color));
+                OthelloCore predictor = new LocalOthelloCore(core.getTurnColor(), core.getBoard());
+                predictor.addStep(new Step(position, predictor.getTurnColor()));
                 if(SG(color, predictor)) return true;
             }
             return false;
         } else { // 否则，必须每步都必胜
             for(Position position : validPosition) {
-                OthelloCore predictor = new LocalOthelloCore(color, core.getBoard());
-                predictor.addStep(new Step(position, color));
+                OthelloCore predictor = new LocalOthelloCore(core.getTurnColor(), core.getBoard());
+                predictor.addStep(new Step(position, predictor.getTurnColor()));
                 if(!SG(color, predictor)) return false;
             }
             return true;
@@ -189,7 +189,7 @@ public class AIPlayer extends Player {
             points = 1e20;
             for(Position position : now.getValidPosition()) {
                 OthelloCore core = new LocalOthelloCore(now.getTurnColor(), now.getBoard());
-                core.addStep(new Step(position, color));
+                core.addStep(new Step(position, -color));
                 points = min(points, search(color, steps - 1, points, core));
             }
         }
