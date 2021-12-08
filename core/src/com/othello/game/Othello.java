@@ -24,6 +24,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.UBJsonReader;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.othello.game.core.LocalOthelloCore;
 import com.othello.game.core.OthelloGame;
 import com.othello.game.player.AIPlayer;
 import com.othello.game.player.LocalPlayer;
@@ -33,6 +34,9 @@ import com.othello.game.processor.HomeInputProcessor;
 import com.othello.game.utils.*;
 
 import java.util.ArrayList;
+
+import static com.othello.game.utils.OthelloConstants.AIDifficulty.HARD;
+import static com.othello.game.utils.OthelloConstants.DiscType.WHITE;
 
 public class Othello extends ApplicationAdapter {
 	public PerspectiveCamera cam;
@@ -136,6 +140,18 @@ public class Othello extends ApplicationAdapter {
 
 	// 渲染游戏界面
 	public void renderGame(){
+		if(game.getNowPlay().isOver()) {
+			// game over
+			game.switchToNewGame();
+			board = new int[10][10];
+			// just try
+			renderInstanceList.clear();
+			discList = new DiscList();
+
+			// more codes needed...
+
+		}
+
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 		// 棋盘 3D 部分
@@ -169,7 +185,7 @@ public class Othello extends ApplicationAdapter {
 		modelBatch.render(renderInstanceList, environment);
 		modelBatch.end();
 
-		gameRoundLabel.setText(String.format("Round %d/%d", 1, game.getMaximumPlay()));
+		gameRoundLabel.setText(String.format("Round %d/%d", game.getPlayer1Score() + game.getPlayer2Score() + 1, game.getMaximumPlay()));
 		player1WinCountLabel.setText(String.format("Wins: %d", game.getPlayer1Score()));
 		player2WinCountLabel.setText(String.format("Wins: %d", game.getPlayer2Score()));
 		gameStage.draw();
@@ -249,6 +265,11 @@ public class Othello extends ApplicationAdapter {
 
 			switch (interfaceType) {
 				case OthelloConstants.InterfaceType.LOCAL_SINGLE_PLAYER_MENU:
+
+					/*
+					* 载入上次存档
+					*/
+
 					startButton.addListener(new ChangeListener() {
 						@Override
 						public void changed(ChangeEvent event, Actor actor) {
@@ -263,18 +284,15 @@ public class Othello extends ApplicationAdapter {
 									difficultyNum = OthelloConstants.AIDifficulty.NORMAL;
 									break;
 								case "Hard":
-									difficultyNum = OthelloConstants.AIDifficulty.HARD;
+									difficultyNum = HARD;
 									break;
 								default:
 									difficultyNum = 0; break;
 							}
-							Player p2 = new AIPlayer(difficultyNum, OthelloConstants.DiscType.WHITE);
-							game = new OthelloGame(p1, p2);
+							Player p2 = new AIPlayer(difficultyNum, WHITE);
+							game = new OthelloGame(p1, p2, new LocalOthelloCore());
 							game.setMode(OthelloConstants.GameMode.LOCAL_SINGLE_PLAYER);
 							game.setMaximumPlay(Integer.parseInt(gameRoundSelectBox.getSelected()));
-							game.addPlay();
-							p1.setCore(game.getNowPlay().getCore());
-							p2.setCore(game.getNowPlay().getCore());
 							interfaceType = OthelloConstants.InterfaceType.GAME;
 							initHUD();
 							Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
@@ -288,15 +306,16 @@ public class Othello extends ApplicationAdapter {
 							Player p1 = new LocalPlayer(1, player1TextField.getText(),
 									"data/skin/profile_photo.jpg", OthelloConstants.DiscType.BLACK);
 							Player p2 = new LocalPlayer(2, player2TextField.getText(),
-									"data/skin/profile_photo.jpg", OthelloConstants.DiscType.WHITE);
-							game = new OthelloGame(p1, p2);
+									"data/skin/profile_photo.jpg", WHITE);
+							game = new OthelloGame(p1, p2, new LocalOthelloCore());
 							game.setMode(OthelloConstants.GameMode.LOCAL_MULTIPLE_PLAYER);
 							game.setMaximumPlay(Integer.parseInt(gameRoundSelectBox.getSelected()));
-							game.addPlay();
-							p1.setCore(game.getNowPlay().getCore());
-							p2.setCore(game.getNowPlay().getCore());
+
+							game.refresh();
+
+							p1.setCore(game.getNowPlay());
+							p2.setCore(game.getNowPlay());
 							interfaceType = OthelloConstants.InterfaceType.GAME;
-							System.out.println(game.getNowPlay().getTurnPlayer().getColor());
 							initHUD();
 							Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
 						}
@@ -413,20 +432,22 @@ public class Othello extends ApplicationAdapter {
 
 	// 本地对战逻辑
 	public void localGameLogic() {
-		if (boardClicked) {
+		if(game.getNowPlayer().getClass().equals(AIPlayer.class)) {
+			System.out.println("AI Thinking...");
+			game.getNowPlayer().addStep();
+		} else if (boardClicked) {
 			System.out.printf("Othello: detected click, at position: %d %d\n", boardClickPosition.getX(), boardClickPosition.getY());
 			boardClicked = false;
-			System.out.printf("Othello: addStep(%d, %d, %d)\n", boardClickPosition.getX(), boardClickPosition.getY(), game.getNowPlay().getTurnPlayer().getColor());
-			game.getNowPlay().getTurnPlayer().addStep(
-					new Step(boardClickPosition, game.getNowPlay().getTurnPlayer().getColor())
+			System.out.printf("Othello: addStep(%d, %d, %d)\n", boardClickPosition.getX(), boardClickPosition.getY(), game.getNowPlay().getTurnColor());
+			game.getNowPlayer().addStep(
+					new Step(boardClickPosition, game.getNowPlay().getTurnColor())
 			);
-			if (game.getMode() == OthelloConstants.GameMode.LOCAL_SINGLE_PLAYER)
-				game.getNowPlay().getTurnPlayer().addStep();
-			for (int i = 1; i <= 8; i++) {
-				for (int j = 1; j <= 8; j++)
-					System.out.printf("%d ", game.getNowPlayBoard()[i][j]);
-				System.out.println("");
-			}
+		}
+
+		for (int i = 1; i <= 8; i++) {
+			for (int j = 1; j <= 8; j++)
+				System.out.printf("%d ", game.getNowPlayBoard()[i][j]);
+			System.out.println("");
 		}
 	}
 

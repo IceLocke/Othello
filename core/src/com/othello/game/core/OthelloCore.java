@@ -20,23 +20,15 @@ public abstract class OthelloCore {
             this.board[i] = board[i].clone();
     }
 
-    public OthelloCore() {
+    public void refresh() {
         this.turnColor = BLACK;
-        board = new int[10][10];
         board[4][4] = board[5][5] = WHITE;
         board[4][5] = board[5][4] = BLACK;
     }
 
-    public OthelloCore(int turnColor) { // 默认棋盘
-        this.turnColor = turnColor;
+    public OthelloCore() {
         board = new int[10][10];
-        board[4][4] = board[5][5] = WHITE;
-        board[4][5] = board[5][4] = BLACK;
-    }
-
-    public OthelloCore(int turnColor, int[][] board) {
-        this.turnColor = turnColor;
-        setBoard(board);
+        refresh();
     }
 
     public int[][] getBoard() {
