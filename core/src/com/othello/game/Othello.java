@@ -102,6 +102,18 @@ public class Othello extends ApplicationAdapter {
 				newBoard[i][j] = game.getNowPlayBoard()[i][j];
 	}
 
+	public void reloadBoard() {
+		for (int i = 1; i <= 8; i++) {
+			for (int j = 1; j <= 8; j++)
+				board[i][j] = 0;
+		}
+		renderInstanceList.clear();
+		renderInstanceList.add(tableInstance);
+		renderInstanceList.add(frameInstance);
+		renderInstanceList.add(boardInstance);
+		discList.getDiscList().clear();
+	}
+
 	// 渲染主菜单
 	public void renderHome() {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -143,19 +155,17 @@ public class Othello extends ApplicationAdapter {
 		if(game.getNowPlay().isOver()) {
 			// game over
 			game.switchToNewGame();
-			board = new int[10][10];
-			// just try
-//			renderInstanceList.clear();
-//			discList = new DiscList();
+			reloadBoard();
 
 			// more codes needed...
-
 		}
 
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
 		// 棋盘 3D 部分
 		loadBoard();
+		// 指行操作后再渲染
 		localGameLogic();
 		for (int i = 1; i <= 8; i++) {
 			for (int j = 1; j <= 8; j++) {
@@ -166,8 +176,7 @@ public class Othello extends ApplicationAdapter {
 						AnimationController newController = discAnimationControllerList.get(discList.getDiscListSize());
 						discList.addDisc(new Disc(i, j, newBoard[i][j], newDiscInstance, newController));
 						renderInstanceList.add(newDiscInstance);
-					}
-					else {
+					} else {
 						// 翻转棋子
 						Disc disc = discList.getDiscAtPosition(i, j);
 						disc.rotate();
@@ -383,6 +392,7 @@ public class Othello extends ApplicationAdapter {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				interfaceType = OthelloConstants.InterfaceType.HOME;
+				reloadBoard();
 				Gdx.input.setInputProcessor(new HomeInputProcessor());
 			}
 		});

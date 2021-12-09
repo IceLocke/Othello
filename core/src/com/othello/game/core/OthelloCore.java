@@ -23,6 +23,10 @@ public abstract class OthelloCore {
     public void refresh() {
         over = false;
         this.turnColor = BLACK;
+        for (int i = 1; i <= 8; i++) {
+            for (int j = 1; j <= 8; j++)
+                board[i][j] = BLANK;
+        }
         board[4][4] = board[5][5] = WHITE;
         board[4][5] = board[5][4] = BLACK;
     }
