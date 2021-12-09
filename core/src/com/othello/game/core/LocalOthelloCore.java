@@ -17,11 +17,13 @@ public class LocalOthelloCore extends OthelloCore {
 
     public boolean addStep(Step step) {
         if(step.getColor() != super.turnColor) {
-            System.out.println("LocalOthelloCore: WHO???");
+            System.out.println("LocalOthelloCore: Wrong color!");
         }
         assert step.getColor() == super.turnColor;
-        if(!isValidPosition(step.getPosition(), step.getColor()))
+        if(!isValidPosition(step.getPosition(), step.getColor())) {
+            System.out.println("LocalOthelloCore: Wrong step!!");
             return false;
+        }
         final int[] dx = {1, 1, 1, 0, 0, -1, -1, -1};
         final int[] dy = {1, 0, -1, 1, -1, 1, 0, -1};
         int x = step.getPosition().getX();
