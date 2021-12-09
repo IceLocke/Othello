@@ -33,15 +33,9 @@ public class AIPlayer extends Player {
             if(board[i] == BLANK) atLeastOne = true;
         }
         if(!atLeastOne) {
-            if(board[1] == WHITE) value[condNow] += 4;
-                else value[condNow] -= 2;
-            if(board[8] == WHITE) value[condNow] += 4;
-                else value[condNow] -= 2;
+            value[condNow] = (board[1] + board[8]) << 2;
             for(int i = 2; i <= 7; ++i)
-                if(board[i] == WHITE)
-                    value[condNow] += 1;
-                else
-                    value[condNow] -= 0.3;
+                value[condNow] += board[i];
             return;
         }
         for(int i = 1; i <= 8; ++i)
@@ -160,21 +154,21 @@ public class AIPlayer extends Player {
             int[][] board = now.getBoard();
             int cond = 0;
             for(int i = 1; i <= 8; ++i)
-                cond = cond * 3 + board[1][i] + 1;
+                cond = cond * 3 + color * board[1][i] + 1;
             points += value[cond];
             cond = 0;
             for(int i = 1; i <= 8; ++i)
-                cond = cond * 3 + board[8][i] + 1;
+                cond = cond * 3 + color * board[8][i] + 1;
             points += value[cond];
             cond = 0;
             for(int i = 1; i <= 8; ++i)
-                cond = cond * 3 + board[i][1] + 1;
+                cond = cond * 3 + color * board[i][1] + 1;
             points += value[cond];
             cond = 0;
             for(int i = 1; i <= 8; ++i)
-                cond = cond * 3 + board[i][8] + 1;
+                cond = cond * 3 + color * board[i][8] + 1;
             points += value[cond];
-            return color == WHITE ? points : -points;
+            return points;
         }
         double points;
         if(now.getTurnColor() == color) {
@@ -182,8 +176,9 @@ public class AIPlayer extends Player {
             for(Position position : now.getValidPosition()) {
                 OthelloCore core = new LocalOthelloCore(now.getTurnColor(), now.getBoard());
                 core.addStep(new Step(position, color));
-                points = max(points, search(color, steps - 1, limit, core));
+                points = max(points, search(color, steps - 1, points, core));
                 if(points > limit) return limit;
+                // 已经超过了之前同根的最小值，自己取max后再取min一定没有贡献
             }
         } else {
             points = 1e20;
@@ -191,6 +186,7 @@ public class AIPlayer extends Player {
                 OthelloCore core = new LocalOthelloCore(now.getTurnColor(), now.getBoard());
                 core.addStep(new Step(position, -color));
                 points = min(points, search(color, steps - 1, points, core));
+                if(points < limit) return limit;
             }
         }
         return points;
@@ -271,7 +267,7 @@ public class AIPlayer extends Player {
                 * 首先，步数不少于47时，暴力出奇迹
                 * 否则，如果存在一步可以让自己连走，走这一步
                 * 否则，假设对手足够聪明，深搜6层（一般情况下是各下3步），对最坏局面进行评估，计算四条边上自己颜色的得分之和
-                * 对于一条占满的边，令角得2分，边得1分，乘以颜色（自己1对手-1）
+                * 四条边对占满情况进行估值，其他情况以一定概率进行记忆化搜索转移
                 * 否则计算“下一次这条边上落子后期望得分”，记忆化搜索出下一步的状态，去除不可能转移的状态（两侧都为同色不可能落子），对可直接转移的状态提供3倍权重
                 * */
 
@@ -297,7 +293,8 @@ public class AIPlayer extends Player {
                     for(Position position : validPosition) {
                         OthelloCore predictor = new LocalOthelloCore(this.getColor(), this.getCore().getBoard());
                         predictor.addStep(new Step(position, this.getColor()));
-                        double nowValue = search(this.getColor(), 4, 1e20, predictor);
+                        int steps = 8;
+                        double nowValue = search(this.getColor(), steps, 1e20, predictor);
                         if(maxValue < nowValue) {
                             maxValue = nowValue;
                             best = position;
@@ -306,25 +303,5 @@ public class AIPlayer extends Player {
                     this.getCore().addStep(new Step(best, this.getColor()));
                 }
         }
-    }
-
-    public static void main(String[] args) {
-        new AIPlayer(HARD, WHITE);
-        int[] board;
-        int cond;
-
-        board = new int[]{0, 1, 1, 1, -1, -1, 1, 0, 0, 0};
-        cond = 0;
-        for(int i = 1; i <= 8; ++i) {
-            cond = cond * 3 + board[i] + 1;
-        }
-        System.out.println(value[cond]);
-
-        board = new int[]{0, -1, 1, 1, -1, -1, 1, 0, 0, 0};
-        cond = 0;
-        for(int i = 1; i <= 8; ++i) {
-            cond = cond * 3 + board[i] + 1;
-        }
-        System.out.println(value[cond]);
     }
 }

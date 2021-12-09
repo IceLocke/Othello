@@ -145,8 +145,8 @@ public class Othello extends ApplicationAdapter {
 			game.switchToNewGame();
 			board = new int[10][10];
 			// just try
-			renderInstanceList.clear();
-			discList = new DiscList();
+//			renderInstanceList.clear();
+//			discList = new DiscList();
 
 			// more codes needed...
 
