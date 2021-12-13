@@ -67,6 +67,7 @@ public class Othello extends ApplicationAdapter {
 
 	public static int interfaceType = OthelloConstants.InterfaceType.HOME;
 	public static int menuButtonType = OthelloConstants.MenuButtonType.NONE;
+	public static int lastTurnColor;
 	public static boolean menuButtonPressed = false;
 	public static boolean boardClicked = false;
 	public static boolean aiIsThinking = false;
@@ -113,6 +114,11 @@ public class Othello extends ApplicationAdapter {
 		renderInstanceList.add(frameInstance);
 		renderInstanceList.add(boardInstance);
 		discList = new DiscList();
+
+		for (int i = 0; i < discInstanceList.size(); i++) {
+			discInstanceList.set(i, new ModelInstance(discModel));
+			discAnimationControllerList.set(i, new AnimationController(discInstanceList.get(i)));
+		}
 	}
 
 	// 渲染主菜单
@@ -166,8 +172,6 @@ public class Othello extends ApplicationAdapter {
 
 		// 棋盘 3D 部分
 		loadBoard();
-		// 指行操作后再渲染
-		localGameLogic();
 		for (int i = 1; i <= 8; i++) {
 			for (int j = 1; j <= 8; j++) {
 				if (board[i][j] != newBoard[i][j]) {
@@ -180,7 +184,6 @@ public class Othello extends ApplicationAdapter {
 					} else {
 						// 翻转棋子
 						Disc disc = discList.getDiscAtPosition(i, j);
-						System.out.printf("Disc at %d, %d should be rotated, rotateTimes: %d, upcolor: %d\n", i, j, disc.getRotateTimes() + 1, disc.getUpColor());
 						disc.rotate();
 					}
 				}
@@ -200,6 +203,9 @@ public class Othello extends ApplicationAdapter {
 		player1WinCountLabel.setText(String.format("Wins: %d", game.getPlayer1Score()));
 		player2WinCountLabel.setText(String.format("Wins: %d", game.getPlayer2Score()));
 		gameStage.draw();
+
+		// 最后处理操作
+		localGameLogic();
 	}
 
 	// 主菜单逻辑
@@ -447,7 +453,9 @@ public class Othello extends ApplicationAdapter {
 		if(game.getNowPlayer().getID() == -1) {
 			boolean animationIsOver = true;
 			for (Disc disc : discList.getDiscList())
-				animationIsOver = animationIsOver && !disc.animationController.inAction;
+				animationIsOver = animationIsOver && disc.animationIsOver;
+			if (!animationIsOver)
+				System.out.println("in action");
 			if (aiIsThinking || !animationIsOver)
 				return;
 			game.getNowPlayer().addStep();

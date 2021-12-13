@@ -2,6 +2,7 @@ package com.othello.game.utils;
 
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
+import com.badlogic.gdx.graphics.g3d.utils.BaseAnimationController;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 
@@ -12,6 +13,7 @@ public class Disc {
     private int y;
     private int upColor;
     private int rotateTimes;
+    public boolean animationIsOver;
 
     public ModelInstance modelInstance;
     public AnimationController animationController;
@@ -27,6 +29,7 @@ public class Disc {
         this.modelInstance = modelInstance;
         this.animationController = animationController;
         rotateTimes = 0;
+        animationIsOver = true;
 
         float zPos = zPosShifting + x * boardScale;
         float xPos = xPosShifting + y * boardScale;
@@ -39,30 +42,38 @@ public class Disc {
         discID = ++Disc.discCnt;
     }
 
-    public Disc(int x, int y, ModelInstance modelInstance, AnimationController animationController) {
-        this.x = x;
-        this.y = y;
-        this.upColor = OthelloConstants.DiscType.BLACK;
-        this.modelInstance = modelInstance;
-        this.animationController = animationController;
-        float zPos = zPosShifting + x * boardScale;
-        float xPos = xPosShifting + y * boardScale;
-        float yPos = yPosShifting;
-        modelInstance.transform = new Matrix4().setToTranslation(xPos, yPos, zPos);
-        modelInstance.calculateTransforms();
-        discID = ++Disc.discCnt;
-    }
-
     public void rotate() {
+        animationIsOver = false;
         rotateTimes++;
         if (upColor == OthelloConstants.DiscType.BLACK) {
-            animationController.setAnimation("disc|BlackToWhite");
+            animationController.setAnimation("disc|BlackToWhite", new AnimationController.AnimationListener() {
+                @Override
+                public void onEnd(AnimationController.AnimationDesc animation) {
+                    System.out.println("Is Over");
+                    animationIsOver = true;
+                }
+                @Override
+                public void onLoop(AnimationController.AnimationDesc animation) {
+
+                }
+            });
             if (rotateTimes == 1)
                 modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 180);
             modelInstance.calculateTransforms();
         }
         else {
-            animationController.setAnimation("disc|WhiteToBlack");
+            animationController.setAnimation("disc|WhiteToBlack", new AnimationController.AnimationListener() {
+                @Override
+                public void onEnd(AnimationController.AnimationDesc animation) {
+                    System.out.println("Is Over");
+                    animationIsOver = true;
+                }
+
+                @Override
+                public void onLoop(AnimationController.AnimationDesc animation) {
+
+                }
+            });
             if (rotateTimes % 2 == 1)
                 // modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 180);
             modelInstance.calculateTransforms();
