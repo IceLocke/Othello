@@ -3,6 +3,7 @@ package com.othello.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -48,12 +49,14 @@ public class Othello extends ApplicationAdapter {
 	public Model boardModel;
 	public Model discModel;
 	public Model tableModel;
+	public Model pointerModel;
 	public ModelBatch modelBatch;
 
 	public ModelInstance frameInstance;
 	public ModelInstance boardInstance;
 	public ModelInstance tableInstance;
 	public ArrayList<ModelInstance> discInstanceList;
+	public ArrayList<ModelInstance> pointerInstanceList;
 	public ArrayList<AnimationController> discAnimationControllerList;
 	public DiscList discList;
 	public ArrayList<ModelInstance> renderInstanceList;
@@ -66,9 +69,13 @@ public class Othello extends ApplicationAdapter {
 	public BitmapFont buttonFont;
 	public BitmapFont buttonFontBold;
 
+	public static Sound chessSound1;
+	public static Sound chessSound2;
+	public static Sound bgm;
+	public static long bgmId;
 	public static int interfaceType = OthelloConstants.InterfaceType.HOME;
 	public static int menuButtonType = OthelloConstants.MenuButtonType.NONE;
-	public static int lastTurnColor;
+	public static int lastTurnColor = OthelloConstants.DiscType.BLANK;
 	public static boolean menuButtonPressed = false;
 	public static boolean boardClicked = false;
 	public static boolean aiIsThinking = false;
@@ -111,6 +118,7 @@ public class Othello extends ApplicationAdapter {
 	}
 
 	public void backToHome() {
+		clearBoard();
 		interfaceType = OthelloConstants.InterfaceType.HOME;
 		Gdx.input.setInputProcessor(new HomeInputProcessor());
 	}
@@ -131,6 +139,7 @@ public class Othello extends ApplicationAdapter {
 		renderInstanceList.add(frameInstance);
 		renderInstanceList.add(boardInstance);
 		discList = new DiscList();
+		lastTurnColor = OthelloConstants.DiscType.BLANK;
 
 		for (int i = 0; i < discInstanceList.size(); i++) {
 			discInstanceList.set(i, new ModelInstance(discModel));
@@ -188,6 +197,7 @@ public class Othello extends ApplicationAdapter {
 				public void changed(ChangeEvent event, Actor actor) {
 					game.switchToNewGame();
 					clearBoard();
+					gameStage.dispose();
 					initHUD();
 				}
 			});
@@ -255,6 +265,7 @@ public class Othello extends ApplicationAdapter {
 
 		// 切换玩家动画
 		if (game.getNowPlayer().getColor() != lastTurnColor && animationIsOver()) {
+			pointerInstanceList = new ArrayList<>();
 			if (game.getNowPlayer() == game.getPlayer1()) {
 				player1NameLabel.setStyle(boldLabelStyle);
 				player2NameLabel.setStyle(labelStyle);
@@ -263,11 +274,22 @@ public class Othello extends ApplicationAdapter {
 				player1NameLabel.setStyle(labelStyle);
 				player2NameLabel.setStyle(boldLabelStyle);
 			}
+			ArrayList<Position> validPositions = game.getNowPlay().getValidPosition();
+			System.out.println(validPositions.size());
+			for (Position p : validPositions) {
+				Pointer pointer = new Pointer(p.getX(), p.getY(), new ModelInstance(pointerModel));
+				pointerInstanceList.add(pointer.getModelInstance());
+			}
 			lastTurnColor = game.getNowPlayer().getColor();
 		}
 
+		ArrayList<ModelInstance> renderList = new ArrayList<>();
+		if (pointerInstanceList != null && animationIsOver() && game.getNowPlayer().getClass() != AIPlayer.class)
+			renderList.addAll(pointerInstanceList);
+		renderList.addAll(renderInstanceList);
+
 		modelBatch.begin(cam);
-		modelBatch.render(renderInstanceList, environment);
+		modelBatch.render(renderList, environment);
 		modelBatch.end();
 
 		gameRoundLabel.setText(String.format("Round %d/%d", game.getPlayer1Score() + game.getPlayer2Score() + 1, game.getMaximumPlay()));
@@ -536,6 +558,7 @@ public class Othello extends ApplicationAdapter {
 				@Override
 				public void run() {
 					game.getNowPlayer().addStep();
+					chessSound1.play(0.1f);
 					aiIsThinking = false;
 				}
 			});
@@ -551,7 +574,7 @@ public class Othello extends ApplicationAdapter {
 			game.getNowPlayer().addStep(
 					new Step(boardClickPosition, game.getNowPlay().getTurnColor())
 			);
-
+			chessSound1.play(0.1f);
 			for (int i = 1; i <= 8; i++) {
 				for (int j = 1; j <= 8; j++)
 					System.out.printf("%d ", game.getNowPlayBoard()[i][j]);
@@ -600,6 +623,7 @@ public class Othello extends ApplicationAdapter {
 		boardModel = objLoader.loadModel(Gdx.files.internal("models/board.obj"));
 		discModel = loader.loadModel(Gdx.files.internal("models/disc_animate.g3db"));
 		tableModel = objLoader.loadModel(Gdx.files.internal("models/wooden_table.obj"));
+		pointerModel = objLoader.loadModel(Gdx.files.internal("models/pointer.obj"));
 
 		frameInstance = new ModelInstance(frameModel);
 		frameInstance.transform = new Matrix4().setToTranslation(0, -0.1f, 0);
@@ -680,6 +704,12 @@ public class Othello extends ApplicationAdapter {
 
 		Gdx.input.setInputProcessor(new HomeInputProcessor());
 		/* --- 主菜单 UI 初始化结束 --- */
+
+		/* --- 加载声音资源 --- */
+		chessSound1 = Gdx.audio.newSound(Gdx.files.internal("sound/chess_sound1.mp3"));
+		chessSound2 = Gdx.audio.newSound(Gdx.files.internal("sound/chess_sound2.mp3"));
+		bgm = Gdx.audio.newSound(Gdx.files.internal("sound/bgm.mp3"));
+		bgmId = bgm.loop(0.01f);
 
 		System.out.println(Gdx.graphics.getDeltaTime());
 	}

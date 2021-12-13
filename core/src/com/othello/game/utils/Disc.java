@@ -1,11 +1,10 @@
 package com.othello.game.utils;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
-import com.badlogic.gdx.graphics.g3d.utils.BaseAnimationController;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.othello.game.Othello;
 
 public class Disc {
     private static int discCnt = 0;
@@ -51,6 +50,7 @@ public class Disc {
                 @Override
                 public void onEnd(AnimationController.AnimationDesc animation) {
                     animationIsOver = true;
+                    Othello.chessSound2.play(0.1f);
                 }
 
                 @Override
@@ -67,6 +67,7 @@ public class Disc {
                 @Override
                 public void onEnd(AnimationController.AnimationDesc animation) {
                     animationIsOver = true;
+                    Othello.chessSound2.play(0.1f);
                 }
 
                 @Override
