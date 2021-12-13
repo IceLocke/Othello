@@ -30,7 +30,7 @@ public class Disc {
         float xPos = xPosShifting + y * boardScale;
         float yPos = yPosShifting;
         modelInstance.transform = new Matrix4().setToTranslation(xPos, yPos, zPos);
-        if (upColor == OthelloConstants.DiscType.WHITE)
+        if (upColor == OthelloConstants.DiscType.BLACK)
             modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 180);
         modelInstance.calculateTransforms();
         discID = ++Disc.discCnt;
@@ -51,7 +51,13 @@ public class Disc {
     }
 
     public void rotate() {
-        modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 180);
+        if (upColor == OthelloConstants.DiscType.BLACK) {
+            modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 180);
+            animationController.setAnimation("disc|BlackToWhite");
+        }
+        else
+            animationController.setAnimation("disc|WhiteToBlack");
+        upColor = -upColor;
     }
 
     public static void setPosition(Disc disc, int x, int y) {

@@ -69,14 +69,15 @@ public class Othello extends ApplicationAdapter {
 	public static int menuButtonType = OthelloConstants.MenuButtonType.NONE;
 	public static boolean menuButtonPressed = false;
 	public static boolean boardClicked = false;
+	public static boolean aiIsThinking = false;
 	public static Position boardClickPosition;
+	public static OthelloGame game;
 
 	protected SpriteBatch batch;
 	protected Texture homeLoading;
 	protected Texture homeDefault;
 	protected Texture defaultBlackPlayerProfilePhoto;
 	protected Texture defaultWhitePlayerProfilePhoto;
-	protected OthelloGame game;
 	protected int[][] board;
 	protected int[][] newBoard;
 	protected boolean newGame = true;
@@ -178,6 +179,7 @@ public class Othello extends ApplicationAdapter {
 						renderInstanceList.add(newDiscInstance);
 					} else {
 						// 翻转棋子
+						System.out.printf("Disc at %d, %d should be rotated\n", i, j);
 						Disc disc = discList.getDiscAtPosition(i, j);
 						disc.rotate();
 					}
@@ -443,9 +445,9 @@ public class Othello extends ApplicationAdapter {
 	// 本地对战逻辑
 	public void localGameLogic() {
 		if(game.getNowPlayer().getID() == -1) {
-			System.out.println("AI Thinking...");
+			if (aiIsThinking)
+				return;
 			game.getNowPlayer().addStep();
-
 			for (int i = 1; i <= 8; i++) {
 				for (int j = 1; j <= 8; j++)
 					System.out.printf("%d ", game.getNowPlayBoard()[i][j]);
@@ -505,7 +507,7 @@ public class Othello extends ApplicationAdapter {
 		ObjLoader objLoader = new ObjLoader();
 		frameModel = objLoader.loadModel(Gdx.files.internal("models/frame.obj"));
 		boardModel = objLoader.loadModel(Gdx.files.internal("models/board.obj"));
-		discModel = loader.loadModel(Gdx.files.internal("models/disc.g3db"));
+		discModel = loader.loadModel(Gdx.files.internal("models/disc_animate.g3db"));
 		tableModel = objLoader.loadModel(Gdx.files.internal("models/wooden_table.obj"));
 
 		frameInstance = new ModelInstance(frameModel);
