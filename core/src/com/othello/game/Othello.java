@@ -61,6 +61,7 @@ public class Othello extends ApplicationAdapter {
 	public FreeTypeFontGenerator generator;
 	public FreeTypeFontGenerator generatorBold;
 	public BitmapFont font;
+	public BitmapFont boldFont;
 	public BitmapFont titleFont;
 	public BitmapFont buttonFont;
 	public BitmapFont buttonFontBold;
@@ -90,13 +91,21 @@ public class Othello extends ApplicationAdapter {
 	protected Table gameButtonTable;
 	protected Table playerTable;
 	protected Label gameRoundLabel;
+	protected Label player1NameLabel;
+	protected Label player2NameLabel;
 	protected Label player1WinCountLabel;
 	protected Label player2WinCountLabel;
 	protected Label.LabelStyle labelStyle;
+	protected Label.LabelStyle boldLabelStyle;
 	protected Label.LabelStyle titleLabelStyle;
 	protected TextButton.TextButtonStyle buttonStyle;
 	protected TextField.TextFieldStyle textFieldStyle;
 	protected SelectBox.SelectBoxStyle selectBoxStyle;
+
+	public void backToHome() {
+		interfaceType = OthelloConstants.InterfaceType.HOME;
+		Gdx.input.setInputProcessor(new HomeInputProcessor());
+	}
 
 	public void loadBoard() {
 		for (int i = 0; i <= 9; i++)
@@ -104,7 +113,7 @@ public class Othello extends ApplicationAdapter {
 				newBoard[i][j] = game.getNowPlayBoard()[i][j];
 	}
 
-	public void reloadBoard() {
+	public void clearBoard() {
 		for (int i = 1; i <= 8; i++) {
 			for (int j = 1; j <= 8; j++)
 				board[i][j] = 0;
@@ -159,12 +168,64 @@ public class Othello extends ApplicationAdapter {
 
 	// 渲染游戏界面
 	public void renderGame(){
-		if(game.getNowPlay().isOver()) {
-			// game over
-			game.switchToNewGame();
-			reloadBoard();
+		// 游戏结束动画
+		if (game.getNowPlay().isOver()) {
+			// round over
+			final Dialog dialog = new Dialog("\nRound Over", skin);
+			dialog.setMovable(false);
+			dialog.setSize(200, 140);
+			dialog.button("OK").pad(10, 10, 10, 10);
+			dialog.getButtonTable().addListener(new ChangeListener() {
+				@Override
+				public void changed(ChangeEvent event, Actor actor) {
+					game.switchToNewGame();
+					clearBoard();
+					dialog.remove();
+				}
+			});
+			dialog.setPosition(540, 360);
+			gameStage.addActor(dialog);
+			if (game.getNowPlay().getWinner() == game.getPlayer1().getColor())
+				dialog.text(new Label(String.format("%s wins!", game.getPlayer1().getPlayerName()), skin)).pad(10, 10, 10, 10);
+			else
+				dialog.text(new Label(String.format("%s wins!", game.getPlayer2().getPlayerName()), skin)).pad(10, 10, 10, 10);
 
-			// more codes needed...
+			// game over
+			// local
+			if (game.isOver()) {
+				if (game.getMode() != OthelloConstants.GameMode.ONLINE_MULTIPLE_PLAYER) {
+					final Dialog dialog1 = new Dialog("\nRound Over", skin);
+					dialog1.setMovable(false);
+					dialog1.setSize(200, 140);
+					dialog1.button("OK").pad(10, 10, 10, 10);
+					dialog1.getButtonTable().addListener(new ChangeListener() {
+						@Override
+						public void changed(ChangeEvent event, Actor actor) {
+							clearBoard();
+							backToHome();
+							dialog1.remove();
+						}
+					});
+					dialog1.setPosition(540, 360);
+					gameStage.addActor(dialog1);
+					if (game.getWinner() != null)
+						dialog.text(new Label(String.format("%s wins!", game.getWinner().getPlayerName()), skin)).pad(10, 10, 10, 10);
+					else
+						dialog.text(new Label("Draw!", skin)).pad(10, 10, 10, 10);
+				}
+			}
+		}
+
+		// 切换玩家动画
+		if (game.getNowPlayer().getColor() != lastTurnColor) {
+			if (game.getNowPlayer() == game.getPlayer1()) {
+				player1NameLabel.setStyle(boldLabelStyle);
+				player2NameLabel.setStyle(labelStyle);
+			}
+			else {
+				player1NameLabel.setStyle(labelStyle);
+				player2NameLabel.setStyle(boldLabelStyle);
+			}
 		}
 
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -183,6 +244,7 @@ public class Othello extends ApplicationAdapter {
 						renderInstanceList.add(newDiscInstance);
 					} else {
 						// 翻转棋子
+						System.out.println("rotating");
 						Disc disc = discList.getDiscAtPosition(i, j);
 						disc.rotate();
 					}
@@ -227,7 +289,7 @@ public class Othello extends ApplicationAdapter {
 			final Label gameRoundLabel = new Label("Rounds", labelStyle);
 			Label serverAddressLabel = null;
 			TextButton startButton = new TextButton("Start", skin);
-			TextButton backButton = new TextButton("Back", skin);
+			final TextButton backButton = new TextButton("Back", skin);
 			TextButton loadButton = new TextButton("Load", skin);
 			final TextField player1TextField = new TextField("player1", skin);
 			final TextField player2TextField = new TextField("player2", skin);
@@ -267,8 +329,7 @@ public class Othello extends ApplicationAdapter {
 			backButton.addListener(new ChangeListener() {
 				@Override
 				public void changed(ChangeEvent event, Actor actor) {
-					interfaceType = OthelloConstants.InterfaceType.HOME;
-					Gdx.input.setInputProcessor(new HomeInputProcessor());
+					backToHome();
 				}
 			});
 			loadButton.addListener(new ChangeListener() {
@@ -386,7 +447,7 @@ public class Othello extends ApplicationAdapter {
 		playerTable = new Table();
 		TextButton homeButton = new TextButton("Home", skin);
 		TextButton saveButton = new TextButton("Save", skin);
-		TextButton backButton = new TextButton("Back", skin);
+		final TextButton backButton = new TextButton("Back", skin);
 		Image p1ProfilePhoto = new Image(defaultBlackPlayerProfilePhoto);
 		Image p2ProfilePhoto = new Image(defaultWhitePlayerProfilePhoto);
 
@@ -399,9 +460,8 @@ public class Othello extends ApplicationAdapter {
 		homeButton.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
-				interfaceType = OthelloConstants.InterfaceType.HOME;
-				reloadBoard();
-				Gdx.input.setInputProcessor(new HomeInputProcessor());
+				backToHome();
+				clearBoard();
 			}
 		});
 
@@ -409,7 +469,7 @@ public class Othello extends ApplicationAdapter {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				game.save();
-				final Dialog dialog = new Dialog("Saved", skin);
+				final Dialog dialog = new Dialog("\nSaved", skin);
 				dialog.setMovable(false);
 				dialog.setSize(200, 140);
 				dialog.text(new Label("Game has been saved", skin)).pad(10, 10, 10, 10);
@@ -425,16 +485,18 @@ public class Othello extends ApplicationAdapter {
 			}
 		});
 
+		player1NameLabel = new Label(game.getPlayer1().getPlayerName(), labelStyle);
+		player2NameLabel = new Label(game.getPlayer2().getPlayerName(), labelStyle);
 		player1WinCountLabel = new Label("", labelStyle);
 		player2WinCountLabel = new Label("", labelStyle);
 
 		playerTable.add(p1ProfilePhoto).size(80, 80);
-		playerTable.add(new Label(game.getPlayer1().getPlayerName(), labelStyle)).padLeft(10).center();
+		playerTable.add(player1NameLabel).padLeft(10).center();
 		playerTable.row();
 		playerTable.add(player1WinCountLabel);
 		playerTable.row();
 		playerTable.add(p2ProfilePhoto).size(80, 80).padTop(50);
-		playerTable.add(new Label(game.getPlayer2().getPlayerName(), labelStyle)).padLeft(10).padTop(50).center();
+		playerTable.add(player2NameLabel).padLeft(10).padTop(50).center();
 		playerTable.row();
 		playerTable.add(player2WinCountLabel);
 
@@ -450,15 +512,25 @@ public class Othello extends ApplicationAdapter {
 
 	// 本地对战逻辑
 	public void localGameLogic() {
+		// 优先把动画处理完
+		boolean animationIsOver = true;
+		for (Disc disc : discList.getDiscList())
+			animationIsOver = animationIsOver && disc.animationIsOver;
+		if (!animationIsOver)
+			return;
+
+		// 下棋的逻辑
 		if(game.getNowPlayer().getID() == -1) {
-			boolean animationIsOver = true;
-			for (Disc disc : discList.getDiscList())
-				animationIsOver = animationIsOver && disc.animationIsOver;
-			if (!animationIsOver)
-				System.out.println("in action");
-			if (aiIsThinking || !animationIsOver)
+			if (aiIsThinking)
 				return;
-			game.getNowPlayer().addStep();
+			aiIsThinking = true;
+			Gdx.app.postRunnable(new Runnable() {
+				@Override
+				public void run() {
+					game.getNowPlayer().addStep();
+					aiIsThinking = false;
+				}
+			});
 			for (int i = 1; i <= 8; i++) {
 				for (int j = 1; j <= 8; j++)
 					System.out.printf("%d ", game.getNowPlayBoard()[i][j]);
@@ -559,7 +631,7 @@ public class Othello extends ApplicationAdapter {
 		/* --- 主菜单 UI 初始化开始 --- */
 		homeDefault = new Texture(Gdx.files.internal("menu/home_blank.png"));
 		generator = new FreeTypeFontGenerator(Gdx.files.internal("font/BRLNSR.TTF"));
-		generatorBold = new FreeTypeFontGenerator(Gdx.files.internal("font/BRLNSR.TTF"));
+		generatorBold = new FreeTypeFontGenerator(Gdx.files.internal("font/BRLNSDB.TTF"));
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 
 		// 生成 BitmapFont
@@ -577,6 +649,8 @@ public class Othello extends ApplicationAdapter {
 		parameter.size = 24;
 		parameter.borderWidth = 0;
 		font = generator.generateFont(parameter);
+		parameter.borderWidth = 2;
+		boldFont = generatorBold.generateFont(parameter);
 
 		// 载入 UI 外观
 		defaultBlackPlayerProfilePhoto = new Texture(Gdx.files.internal("profile_photo/black_default.png"));
@@ -584,11 +658,13 @@ public class Othello extends ApplicationAdapter {
 
 		skin = new Skin(Gdx.files.internal("data/skin/skin-composer-ui.json"));
 		labelStyle = new Label.LabelStyle();
+		boldLabelStyle = new Label.LabelStyle();
 		titleLabelStyle = new Label.LabelStyle();
 		buttonStyle = new TextButton.TextButtonStyle();
 		textFieldStyle = new TextField.TextFieldStyle();
 		selectBoxStyle = new SelectBox.SelectBoxStyle();
 		labelStyle.font = font;
+		boldLabelStyle.font = boldFont;
 		titleLabelStyle.font = buttonFont;
 		buttonStyle.font = buttonFont;
 		textFieldStyle.font = font;

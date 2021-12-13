@@ -49,9 +49,9 @@ public class Disc {
             animationController.setAnimation("disc|BlackToWhite", new AnimationController.AnimationListener() {
                 @Override
                 public void onEnd(AnimationController.AnimationDesc animation) {
-                    System.out.println("Is Over");
                     animationIsOver = true;
                 }
+
                 @Override
                 public void onLoop(AnimationController.AnimationDesc animation) {
 
@@ -65,17 +65,13 @@ public class Disc {
             animationController.setAnimation("disc|WhiteToBlack", new AnimationController.AnimationListener() {
                 @Override
                 public void onEnd(AnimationController.AnimationDesc animation) {
-                    System.out.println("Is Over");
                     animationIsOver = true;
                 }
 
                 @Override
                 public void onLoop(AnimationController.AnimationDesc animation) {
-
                 }
             });
-            if (rotateTimes % 2 == 1)
-                // modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 180);
             modelInstance.calculateTransforms();
         }
         upColor = -upColor;

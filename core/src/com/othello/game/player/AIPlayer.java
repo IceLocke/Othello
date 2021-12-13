@@ -83,7 +83,7 @@ public class AIPlayer extends Player {
         this.difficulty = difficulty;
         this.setColor(color);
         this.setPlayerID(-1);
-        this.setPlayerName("NPC - " + NAMES[difficulty]);
+        this.setPlayerName("AI-" + NAMES[difficulty]);
     }
 
     private int getStepCnt() {

@@ -18,6 +18,7 @@ public class OthelloGame {
     */
 
     private int mode;
+    private int roundCount;
     private int maximumPlay;
     private Player player1;
     private Player player2;
@@ -35,6 +36,7 @@ public class OthelloGame {
         this.player1Score = 0;
         this.player2Score = 0;
         this.nowPlay = core;
+        roundCount = 1;
         player1.setCore(core);
         player2.setCore(core);
     }
@@ -48,6 +50,7 @@ public class OthelloGame {
     }
 
     public void switchToNewGame() {
+        roundCount++;
         if(nowPlay.getWinner() == BLACK) ++player1Score;
         if(nowPlay.getWinner() == WHITE) ++player2Score;
         refresh();
@@ -95,6 +98,23 @@ public class OthelloGame {
 
     public void save() {
 
+    }
+
+    public Player getWinner() {
+        if (isOver()) {
+            if (player1Score > player2Score)
+                return player1;
+            if (player2Score > player1Score)
+                return player2;
+        }
+        return null;
+    }
+
+    public boolean isOver() {
+        if (roundCount == maximumPlay && nowPlay.isOver())
+            return true;
+        else
+            return false;
     }
 
 }
