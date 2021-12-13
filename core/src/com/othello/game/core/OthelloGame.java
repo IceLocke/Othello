@@ -1,58 +1,59 @@
 package com.othello.game.core;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import com.othello.game.player.Player;
+import com.othello.game.utils.Step;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.logging.FileHandler;
+
+import static com.othello.game.utils.OthelloConstants.DiscType.*;
 
 public class OthelloGame {
-    private static int gameCount = 0;
-    private int gameID;
-    private String gameName;
+
     /*
-    * We use numbers to simplify the game mode:
-    * 1 - Local multiple players
-    * 2 - Local single player
-    * 3 - Online multiple players
+    * 每一帧扫描：nowPlay是否结束？若结束，创建新游戏；否则继续当前游戏的下一个回合
     */
+
     private int mode;
-    private ArrayList<OthelloPlay> playList;
-    private int playCount;
+    private int roundCount;
     private int maximumPlay;
     private Player player1;
     private Player player2;
     private int player1Score;
     private int player2Score;
-    private boolean over;
+    private OthelloCore nowPlay;
 
-    OthelloGame(File save) {
+    public OthelloGame(FileHandle file) {
 
     }
 
-    OthelloGame(Player p1, Player p2) {
-        this.gameID = ++OthelloGame.gameCount;
-        this.gameName = String.format("Game%d", this.gameID);
+    public OthelloGame(Player p1, Player p2, OthelloCore core) {
         this.player1 = p1;
         this.player2 = p2;
         this.player1Score = 0;
         this.player2Score = 0;
+        this.nowPlay = core;
+        roundCount = 1;
+        player1.setCore(core);
+        player2.setCore(core);
     }
 
-    OthelloGame(Player p1, Player p2, String name) {
-        this.gameID = ++OthelloGame.gameCount;
-        this.gameName = name;
-        this.player1 = p1;
-        this.player2 = p2;
-        this.player1Score = 0;
-        this.player2Score = 0;
+    public OthelloCore getNowPlay() {
+        return nowPlay;
     }
 
-    public int getGameID() {
-        return this.gameID;
+    public void refresh() {
+        nowPlay.refresh();
     }
 
-    public String getGameName() {
-        return this.gameName;
+    public void switchToNewGame() {
+        roundCount++;
+        if(nowPlay.getWinner() == BLACK) ++player1Score;
+        if(nowPlay.getWinner() == WHITE) ++player2Score;
+        refresh();
     }
 
     public Player getPlayer1() {
@@ -63,6 +64,10 @@ public class OthelloGame {
         return this.player2;
     }
 
+    public Player getNowPlayer() {
+        return nowPlay.getTurnColor() == BLACK ? player1 : player2;
+    }
+
     public int getPlayer1Score() {
         return this.player1Score;
     }
@@ -71,36 +76,47 @@ public class OthelloGame {
         return this.player2Score;
     }
 
-    public ArrayList<OthelloPlay> getPlayList() {
-        return this.playList;
+    public int[][] getNowPlayBoard() {
+        return nowPlay.getBoard();
     }
 
-    public OthelloPlay getPlayByID(int id) throws Exception {
-        OthelloPlay play = null;
-        for (OthelloPlay p : playList) {
-            if (p.getPlayID() == id) {
-                play = p;
-                break;
-            }
+    public int getMode() {
+        return mode;
+    }
+
+    public int getMaximumPlay() {
+        return maximumPlay;
+    }
+
+    public void setMode(int mode) {
+        this.mode = mode;
+    }
+
+    public void setMaximumPlay(int maximumPlay) {
+        this.maximumPlay = maximumPlay;
+    }
+
+    public void save() {
+
+    }
+
+    public Player getWinner() {
+        if(nowPlay.getWinner() == BLACK) ++player1Score;
+        if(nowPlay.getWinner() == WHITE) ++player2Score;
+        if (isOver()) {
+            if (player1Score > player2Score)
+                return player1;
+            if (player2Score > player1Score)
+                return player2;
         }
-        if (play != null)
-            return play;
-        else
-            throw new Exception(String.format("Cannot find play id: %d", id));
+        return null;
     }
 
-    public OthelloPlay getNowPlay() throws Exception {
-        if (playList.size() > 0)
-            return playList.get(playList.size() - 1);
+    public boolean isOver() {
+        if (roundCount == maximumPlay && nowPlay.isOver())
+            return true;
         else
-            throw new Exception("There is not play in the play list");
-    }
-
-    public int[][] getNowPlayBoard(){
-        if (playList.size() > 0)
-            return playList.get(playList.size() - 1).getBoard();
-        else
-            return null;
+            return false;
     }
 
 }

@@ -3,11 +3,27 @@ package com.othello.game.core;
 import com.othello.game.utils.Step;
 
 public class LocalOthelloCore extends OthelloCore {
+    public LocalOthelloCore(int turnColor, int[][] board) {
+        this.turnColor = turnColor;
+        setBoard(board);
+    }
+
+    public LocalOthelloCore() {
+        this.turnColor = BLACK;
+        board = new int[10][10];
+        board[4][4] = board[5][5] = WHITE;
+        board[4][5] = board[5][4] = BLACK;
+    }
 
     public boolean addStep(Step step) {
+        if(step.getColor() != super.turnColor) {
+            System.out.println("LocalOthelloCore: Wrong color!");
+        }
         assert step.getColor() == super.turnColor;
-        if(!isValidPosition(step.getPosition(), step.getColor()))
+        if(!isValidPosition(step.getPosition(), step.getColor())) {
+            System.out.println("LocalOthelloCore: Wrong step!!");
             return false;
+        }
         final int[] dx = {1, 1, 1, 0, 0, -1, -1, -1};
         final int[] dy = {1, 0, -1, 1, -1, 1, 0, -1};
         int x = step.getPosition().getX();
@@ -27,10 +43,15 @@ public class LocalOthelloCore extends OthelloCore {
                     }
             }
         }
-        board[x][y] = turnColor;
-        reverseColor();
+        board[x][y] = super.turnColor;
         if(getValidPosition(WHITE).size() == 0 && getValidPosition(BLACK).size() == 0)
-            over = true;
+            super.over = true;
+        else if(getValidPosition(-turnColor).size() != 0) // 注意！只有在可行时换人下
+            reverseColor();
+        else {
+//            System.out.println("LocalOthelloCore: Once More!");
+            // 提示该玩家再走一步，但应该不是core来做
+        }
         return true;
     }
 }

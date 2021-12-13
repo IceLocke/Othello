@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import javafx.animation.Animation;
+import com.othello.game.Othello;
 
 public class Disc {
     private static int discCnt = 0;
@@ -12,13 +12,15 @@ public class Disc {
     private int x;
     private int y;
     private int upColor;
+    private int rotateTimes;
+    public boolean animationIsOver;
 
     public ModelInstance modelInstance;
     public AnimationController animationController;
     public static final float boardScale = 1.05f;
     public static final float zPosShifting = -8.5f * boardScale;
     public static final float xPosShifting = -1.5f * boardScale;
-    public static final float yPosShifting = 0.12f;
+    public static final float yPosShifting = 0.2f;
 
     public Disc(int x, int y, int upColor, ModelInstance modelInstance, AnimationController animationController) {
         this.x = x;
@@ -26,42 +28,55 @@ public class Disc {
         this.upColor = upColor;
         this.modelInstance = modelInstance;
         this.animationController = animationController;
+        rotateTimes = 0;
+        animationIsOver = true;
 
         float zPos = zPosShifting + x * boardScale;
         float xPos = xPosShifting + y * boardScale;
         float yPos = yPosShifting;
         modelInstance.transform = new Matrix4().setToTranslation(xPos, yPos, zPos);
-        if (upColor == OthelloConstants.DiscType.WHITE)
+        if (upColor == OthelloConstants.DiscType.BLACK) {
             modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 180);
+        }
         modelInstance.calculateTransforms();
         discID = ++Disc.discCnt;
-    }
-
-    public Disc(int x, int y, ModelInstance modelInstance, AnimationController animationController) {
-        this.x = x;
-        this.y = y;
-        this.upColor = OthelloConstants.DiscType.BLACK;
-        this.modelInstance = modelInstance;
-        this.animationController = animationController;
-        float zPos = zPosShifting + x * boardScale;
-        float xPos = xPosShifting + y * boardScale;
-        float yPos = yPosShifting;
-        modelInstance.transform = new Matrix4().setToTranslation(xPos, yPos, zPos);
-        modelInstance.calculateTransforms();
-        discID = ++Disc.discCnt;
-    }
-
-    public static void rotate(Disc disc) {
-        disc.modelInstance.transform = new Matrix4().setToRotation(1f, 0, 0, 180);
-        disc.modelInstance.calculateTransforms();
     }
 
     public void rotate() {
-        if(upColor == OthelloConstants.DiscType.BLACK)
-            modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 180);
-        else
-            modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 0);
-        modelInstance.calculateTransforms();
+        animationIsOver = false;
+        rotateTimes++;
+        if (upColor == OthelloConstants.DiscType.BLACK) {
+            animationController.setAnimation("disc|BlackToWhite", new AnimationController.AnimationListener() {
+                @Override
+                public void onEnd(AnimationController.AnimationDesc animation) {
+                    animationIsOver = true;
+                    Othello.chessSound2.play(0.1f);
+                }
+
+                @Override
+                public void onLoop(AnimationController.AnimationDesc animation) {
+
+                }
+            });
+            if (rotateTimes == 1)
+                modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 180);
+            modelInstance.calculateTransforms();
+        }
+        else {
+            animationController.setAnimation("disc|WhiteToBlack", new AnimationController.AnimationListener() {
+                @Override
+                public void onEnd(AnimationController.AnimationDesc animation) {
+                    animationIsOver = true;
+                    Othello.chessSound2.play(0.1f);
+                }
+
+                @Override
+                public void onLoop(AnimationController.AnimationDesc animation) {
+                }
+            });
+            modelInstance.calculateTransforms();
+        }
+        upColor = -upColor;
     }
 
     public static void setPosition(Disc disc, int x, int y) {
@@ -70,6 +85,10 @@ public class Disc {
         float yPos = yPosShifting;
         disc.modelInstance.transform = new Matrix4().setToTranslation(xPos, yPos, zPos);
         disc.modelInstance.calculateTransforms();
+    }
+
+    public int getRotateTimes() {
+        return rotateTimes;
     }
 
     public int getX() {

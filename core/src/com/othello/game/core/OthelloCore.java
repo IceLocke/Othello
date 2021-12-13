@@ -17,27 +17,23 @@ public abstract class OthelloCore {
 
     public void setBoard(int[][] board) {
         for(int i = 1; i <= 8; ++i)
-            for(int j = 1; j <= 8; ++j)
-                this.board[i][j] = board[i][j];
+            this.board[i] = board[i].clone();
     }
 
-    OthelloCore() {
+    public void refresh() {
+        over = false;
         this.turnColor = BLACK;
-        board = new int[10][10];
+        for (int i = 1; i <= 8; i++) {
+            for (int j = 1; j <= 8; j++)
+                board[i][j] = BLANK;
+        }
         board[4][4] = board[5][5] = WHITE;
         board[4][5] = board[5][4] = BLACK;
     }
 
-    OthelloCore(int turnColor) { // 默认棋盘
-        this.turnColor = turnColor;
+    public OthelloCore() {
         board = new int[10][10];
-        board[4][4] = board[5][5] = WHITE;
-        board[4][5] = board[5][4] = BLACK;
-    }
-
-    OthelloCore(int turnColor, int[][] board) {
-        this.turnColor = turnColor;
-        setBoard(board);
+        refresh();
     }
 
     public int[][] getBoard() {
@@ -53,6 +49,8 @@ public abstract class OthelloCore {
     }
 
     public boolean isValidPosition(Position position, int color) {
+        if(this.getBoard()[position.getX()][position.getY()] != BLANK)
+            return false;
         final int[] dx = {1, 1, 1, 0, 0, -1, -1, -1};
         final int[] dy = {1, 0, -1, 1, -1, 1, 0, -1};
         int x = position.getX();
@@ -72,7 +70,7 @@ public abstract class OthelloCore {
         return false;
     }
 
-    ArrayList<Position> getValidPosition(int color) {
+    public ArrayList<Position> getValidPosition(int color) {
         ArrayList<Position> validPosition = new ArrayList<>();
         for(int i = 1; i <= 8; ++i)
             for(int j = 1; j <= 8; ++j)
@@ -81,7 +79,7 @@ public abstract class OthelloCore {
         return validPosition;
     }
 
-    ArrayList<Position> getValidPosition() { // 默认找当前轮到的颜色的可选位置
+    public ArrayList<Position> getValidPosition() { // 默认找当前轮到的颜色的可选位置
         return getValidPosition(turnColor);
     }
 
