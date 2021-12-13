@@ -101,6 +101,8 @@ public class OthelloGame {
     }
 
     public Player getWinner() {
+        if(nowPlay.getWinner() == BLACK) ++player1Score;
+        if(nowPlay.getWinner() == WHITE) ++player2Score;
         if (isOver()) {
             if (player1Score > player2Score)
                 return player1;

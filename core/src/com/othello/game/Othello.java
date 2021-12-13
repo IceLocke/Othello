@@ -74,6 +74,7 @@ public class Othello extends ApplicationAdapter {
 	public static boolean aiIsThinking = false;
 	public static Position boardClickPosition;
 	public static OthelloGame game;
+	public static final float FPS = 1f / 60;
 
 	protected SpriteBatch batch;
 	protected Texture homeLoading;
@@ -101,6 +102,13 @@ public class Othello extends ApplicationAdapter {
 	protected TextButton.TextButtonStyle buttonStyle;
 	protected TextField.TextFieldStyle textFieldStyle;
 	protected SelectBox.SelectBoxStyle selectBoxStyle;
+
+	public boolean animationIsOver() {
+		boolean over = true;
+		for (Disc disc : discList.getDiscList())
+			over = over && disc.animationIsOver;
+		return over;
+	}
 
 	public void backToHome() {
 		interfaceType = OthelloConstants.InterfaceType.HOME;
@@ -171,30 +179,30 @@ public class Othello extends ApplicationAdapter {
 		// 游戏结束动画
 		if (game.getNowPlay().isOver()) {
 			// round over
-			final Dialog dialog = new Dialog("\nRound Over", skin);
-			dialog.setMovable(false);
-			dialog.setSize(200, 140);
-			dialog.button("OK").pad(10, 10, 10, 10);
-			dialog.getButtonTable().addListener(new ChangeListener() {
+			final Dialog dialog0 = new Dialog("\nRound Over", skin);
+			dialog0.setMovable(false);
+			dialog0.setSize(200, 140);
+			dialog0.button("OK").pad(10, 10, 10, 10);
+			dialog0.getButtonTable().addListener(new ChangeListener() {
 				@Override
 				public void changed(ChangeEvent event, Actor actor) {
 					game.switchToNewGame();
 					clearBoard();
-					dialog.remove();
+					initHUD();
 				}
 			});
-			dialog.setPosition(540, 360);
-			gameStage.addActor(dialog);
+			dialog0.setPosition(540, 360);
+			gameStage.addActor(dialog0);
 			if (game.getNowPlay().getWinner() == game.getPlayer1().getColor())
-				dialog.text(new Label(String.format("%s wins!", game.getPlayer1().getPlayerName()), skin)).pad(10, 10, 10, 10);
+				dialog0.text(new Label(String.format("%s wins!", game.getPlayer1().getPlayerName()), skin)).pad(10, 10, 10, 10);
 			else
-				dialog.text(new Label(String.format("%s wins!", game.getPlayer2().getPlayerName()), skin)).pad(10, 10, 10, 10);
+				dialog0.text(new Label(String.format("%s wins!", game.getPlayer2().getPlayerName()), skin)).pad(10, 10, 10, 10);
 
 			// game over
 			// local
 			if (game.isOver()) {
 				if (game.getMode() != OthelloConstants.GameMode.ONLINE_MULTIPLE_PLAYER) {
-					final Dialog dialog1 = new Dialog("\nRound Over", skin);
+					final Dialog dialog1 = new Dialog("\nGame Over", skin);
 					dialog1.setMovable(false);
 					dialog1.setSize(200, 140);
 					dialog1.button("OK").pad(10, 10, 10, 10);
@@ -203,28 +211,15 @@ public class Othello extends ApplicationAdapter {
 						public void changed(ChangeEvent event, Actor actor) {
 							clearBoard();
 							backToHome();
-							dialog1.remove();
 						}
 					});
 					dialog1.setPosition(540, 360);
 					gameStage.addActor(dialog1);
 					if (game.getWinner() != null)
-						dialog.text(new Label(String.format("%s wins!", game.getWinner().getPlayerName()), skin)).pad(10, 10, 10, 10);
+						dialog1.text(new Label(String.format("%s wins!", game.getWinner().getPlayerName()), skin)).pad(10, 10, 10, 10);
 					else
-						dialog.text(new Label("Draw!", skin)).pad(10, 10, 10, 10);
+						dialog1.text(new Label("Draw!", skin)).pad(10, 10, 10, 10);
 				}
-			}
-		}
-
-		// 切换玩家动画
-		if (game.getNowPlayer().getColor() != lastTurnColor) {
-			if (game.getNowPlayer() == game.getPlayer1()) {
-				player1NameLabel.setStyle(boldLabelStyle);
-				player2NameLabel.setStyle(labelStyle);
-			}
-			else {
-				player1NameLabel.setStyle(labelStyle);
-				player2NameLabel.setStyle(boldLabelStyle);
 			}
 		}
 
@@ -255,8 +250,22 @@ public class Othello extends ApplicationAdapter {
 
 		ArrayList<Disc> discArrayList = discList.getDiscList();
 		for (Disc disc : discArrayList) {
-			disc.animationController.update(Gdx.graphics.getDeltaTime());
+			disc.animationController.update(FPS);
 		}
+
+		// 切换玩家动画
+		if (game.getNowPlayer().getColor() != lastTurnColor && animationIsOver()) {
+			if (game.getNowPlayer() == game.getPlayer1()) {
+				player1NameLabel.setStyle(boldLabelStyle);
+				player2NameLabel.setStyle(labelStyle);
+			}
+			else {
+				player1NameLabel.setStyle(labelStyle);
+				player2NameLabel.setStyle(boldLabelStyle);
+			}
+			lastTurnColor = game.getNowPlayer().getColor();
+		}
+
 		modelBatch.begin(cam);
 		modelBatch.render(renderInstanceList, environment);
 		modelBatch.end();
@@ -513,11 +522,10 @@ public class Othello extends ApplicationAdapter {
 	// 本地对战逻辑
 	public void localGameLogic() {
 		// 优先把动画处理完
-		boolean animationIsOver = true;
-		for (Disc disc : discList.getDiscList())
-			animationIsOver = animationIsOver && disc.animationIsOver;
-		if (!animationIsOver)
+		if (!animationIsOver()) {
+			boardClicked = false;
 			return;
+		}
 
 		// 下棋的逻辑
 		if(game.getNowPlayer().getID() == -1) {
