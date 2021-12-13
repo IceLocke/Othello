@@ -112,7 +112,7 @@ public class Othello extends ApplicationAdapter {
 		renderInstanceList.add(tableInstance);
 		renderInstanceList.add(frameInstance);
 		renderInstanceList.add(boardInstance);
-		discList.getDiscList().clear();
+		discList = new DiscList();
 	}
 
 	// 渲染主菜单
@@ -179,8 +179,8 @@ public class Othello extends ApplicationAdapter {
 						renderInstanceList.add(newDiscInstance);
 					} else {
 						// 翻转棋子
-						System.out.printf("Disc at %d, %d should be rotated\n", i, j);
 						Disc disc = discList.getDiscAtPosition(i, j);
+						System.out.printf("Disc at %d, %d should be rotated, rotateTimes: %d, upcolor: %d\n", i, j, disc.getRotateTimes() + 1, disc.getUpColor());
 						disc.rotate();
 					}
 				}
@@ -445,7 +445,10 @@ public class Othello extends ApplicationAdapter {
 	// 本地对战逻辑
 	public void localGameLogic() {
 		if(game.getNowPlayer().getID() == -1) {
-			if (aiIsThinking)
+			boolean animationIsOver = true;
+			for (Disc disc : discList.getDiscList())
+				animationIsOver = animationIsOver && !disc.animationController.inAction;
+			if (aiIsThinking || !animationIsOver)
 				return;
 			game.getNowPlayer().addStep();
 			for (int i = 1; i <= 8; i++) {

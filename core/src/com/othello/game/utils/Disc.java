@@ -11,6 +11,7 @@ public class Disc {
     private int x;
     private int y;
     private int upColor;
+    private int rotateTimes;
 
     public ModelInstance modelInstance;
     public AnimationController animationController;
@@ -25,13 +26,15 @@ public class Disc {
         this.upColor = upColor;
         this.modelInstance = modelInstance;
         this.animationController = animationController;
+        rotateTimes = 0;
 
         float zPos = zPosShifting + x * boardScale;
         float xPos = xPosShifting + y * boardScale;
         float yPos = yPosShifting;
         modelInstance.transform = new Matrix4().setToTranslation(xPos, yPos, zPos);
-        if (upColor == OthelloConstants.DiscType.BLACK)
+        if (upColor == OthelloConstants.DiscType.BLACK) {
             modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 180);
+        }
         modelInstance.calculateTransforms();
         discID = ++Disc.discCnt;
     }
@@ -51,12 +54,19 @@ public class Disc {
     }
 
     public void rotate() {
+        rotateTimes++;
         if (upColor == OthelloConstants.DiscType.BLACK) {
-            modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 180);
             animationController.setAnimation("disc|BlackToWhite");
+            if (rotateTimes == 1)
+                modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 180);
+            modelInstance.calculateTransforms();
         }
-        else
+        else {
             animationController.setAnimation("disc|WhiteToBlack");
+            if (rotateTimes % 2 == 1)
+                // modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 180);
+            modelInstance.calculateTransforms();
+        }
         upColor = -upColor;
     }
 
@@ -66,6 +76,10 @@ public class Disc {
         float yPos = yPosShifting;
         disc.modelInstance.transform = new Matrix4().setToTranslation(xPos, yPos, zPos);
         disc.modelInstance.calculateTransforms();
+    }
+
+    public int getRotateTimes() {
+        return rotateTimes;
     }
 
     public int getX() {
