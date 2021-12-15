@@ -36,8 +36,8 @@ import com.othello.game.utils.*;
 
 import java.util.ArrayList;
 
-import static com.othello.game.utils.OthelloConstants.AIDifficulty.HARD;
-import static com.othello.game.utils.OthelloConstants.DiscType.WHITE;
+import static com.othello.game.utils.OthelloConstants.AIDifficulty.*;
+import static com.othello.game.utils.OthelloConstants.DiscType.*;
 
 public class Othello extends ApplicationAdapter {
 	public PerspectiveCamera cam;
@@ -122,7 +122,6 @@ public class Othello extends ApplicationAdapter {
 		interfaceType = OthelloConstants.InterfaceType.HOME;
 		Gdx.input.setInputProcessor(new HomeInputProcessor());
 	}
-
 	public void loadBoard() {
 		for (int i = 0; i <= 9; i++)
 			for (int j = 0; j <= 9; j++)
@@ -183,52 +182,65 @@ public class Othello extends ApplicationAdapter {
 		batch.end();
 	}
 
+	private boolean dialog0Existed = false;
+	private boolean dialog1Existed = false;
+	private Dialog dialog0, dialog1;
 	// 渲染游戏界面
 	public void renderGame(){
 		// 游戏结束动画
 		if (game.getNowPlay().isOver()) {
 			// round over
-			final Dialog dialog0 = new Dialog("\nRound Over", skin);
-			dialog0.setMovable(false);
-			dialog0.setSize(200, 140);
-			dialog0.button("OK").pad(10, 10, 10, 10);
-			dialog0.getButtonTable().addListener(new ChangeListener() {
-				@Override
-				public void changed(ChangeEvent event, Actor actor) {
-					game.switchToNewGame();
-					clearBoard();
-					gameStage.dispose();
-					initHUD();
-				}
-			});
-			dialog0.setPosition(540, 360);
-			gameStage.addActor(dialog0);
-			if (game.getNowPlay().getWinner() == game.getPlayer1().getColor())
-				dialog0.text(new Label(String.format("%s wins!", game.getPlayer1().getPlayerName()), skin)).pad(10, 10, 10, 10);
-			else
-				dialog0.text(new Label(String.format("%s wins!", game.getPlayer2().getPlayerName()), skin)).pad(10, 10, 10, 10);
-
-			// game over
-			// local
-			if (game.isOver()) {
-				if (game.getMode() != OthelloConstants.GameMode.ONLINE_MULTIPLE_PLAYER) {
-					final Dialog dialog1 = new Dialog("\nGame Over", skin);
-					dialog1.setMovable(false);
-					dialog1.setSize(200, 140);
-					dialog1.button("OK").pad(10, 10, 10, 10);
-					dialog1.getButtonTable().addListener(new ChangeListener() {
+			if(!dialog0Existed && !game.isOver()) {
+				if(!dialog0Existed) {
+					dialog0Existed = true;
+					dialog0 = new Dialog("\nRound Over", skin);
+					dialog0.setMovable(false);
+					dialog0.setSize(200, 140);
+					dialog0.button("OK").pad(10, 10, 10, 10);
+					dialog0.getButtonTable().addListener(new ChangeListener() {
 						@Override
 						public void changed(ChangeEvent event, Actor actor) {
+							dialog0Existed = false;
+							game.switchToNewGame();
 							clearBoard();
-							backToHome();
+							dialog0.remove();
 						}
 					});
-					dialog1.setPosition(540, 360);
-					gameStage.addActor(dialog1);
-					if (game.getWinner() != null)
-						dialog1.text(new Label(String.format("%s wins!", game.getWinner().getPlayerName()), skin)).pad(10, 10, 10, 10);
+					dialog0.setPosition(540, 360);
+					if (game.getNowPlay().getWinner() == game.getPlayer1().getColor())
+						dialog0.text(new Label(String.format("%s wins!", game.getPlayer1().getPlayerName()), skin)).pad(10, 10, 10, 10);
 					else
-						dialog1.text(new Label("Draw!", skin)).pad(10, 10, 10, 10);
+						dialog0.text(new Label(String.format("%s wins!", game.getPlayer2().getPlayerName()), skin)).pad(10, 10, 10, 10);
+					gameStage.addActor(dialog0);
+				}
+			}
+			// game over
+			// local
+			else if (game.isOver()) {
+				if (game.getMode() != OthelloConstants.GameMode.ONLINE_MULTIPLE_PLAYER) {
+					if(!dialog1Existed) {
+						dialog1Existed = true;
+						dialog1 = new Dialog("\nGame Over", skin);
+						dialog1.setMovable(false);
+						dialog1.setSize(200, 140);
+						dialog1.button("OK").pad(10, 10, 10, 10);
+						dialog1.getButtonTable().addListener(new ChangeListener() {
+							@Override
+							public void changed(ChangeEvent event, Actor actor) {
+								dialog1Existed = false;
+								gameStage.dispose();
+								clearBoard();
+								dialog1.remove();
+								backToHome();
+							}
+						});
+						dialog1.setPosition(540, 360);
+						gameStage.addActor(dialog1);
+						if (game.getWinner() != null)
+							dialog1.text(new Label(String.format("%s wins!", game.getWinner().getPlayerName()), skin)).pad(10, 10, 10, 10);
+						else
+							dialog1.text(new Label("Draw!", skin)).pad(10, 10, 10, 10);
+					}
 				}
 			}
 		}
@@ -263,9 +275,15 @@ public class Othello extends ApplicationAdapter {
 			disc.animationController.update(FPS);
 		}
 
+		pointerInstanceList = new ArrayList<>();
+		ArrayList<Position> validPositions = game.getNowPlay().getValidPosition();
+		for (Position p : validPositions) {
+			Pointer pointer = new Pointer(p.getX(), p.getY(), new ModelInstance(pointerModel));
+			pointerInstanceList.add(pointer.getModelInstance());
+		}
+
 		// 切换玩家动画
-		if (game.getNowPlayer().getColor() != lastTurnColor && animationIsOver()) {
-			pointerInstanceList = new ArrayList<>();
+		if (game.getNowPlayer().getColor() != lastTurnColor && animationIsOver() && !game.isOver()) {
 			if (game.getNowPlayer() == game.getPlayer1()) {
 				player1NameLabel.setStyle(boldLabelStyle);
 				player2NameLabel.setStyle(labelStyle);
@@ -274,12 +292,6 @@ public class Othello extends ApplicationAdapter {
 				player1NameLabel.setStyle(labelStyle);
 				player2NameLabel.setStyle(boldLabelStyle);
 			}
-			ArrayList<Position> validPositions = game.getNowPlay().getValidPosition();
-			System.out.println(validPositions.size());
-			for (Position p : validPositions) {
-				Pointer pointer = new Pointer(p.getX(), p.getY(), new ModelInstance(pointerModel));
-				pointerInstanceList.add(pointer.getModelInstance());
-			}
 			lastTurnColor = game.getNowPlayer().getColor();
 		}
 
@@ -287,7 +299,6 @@ public class Othello extends ApplicationAdapter {
 		if (pointerInstanceList != null && animationIsOver() && game.getNowPlayer().getClass() != AIPlayer.class)
 			renderList.addAll(pointerInstanceList);
 		renderList.addAll(renderInstanceList);
-
 		modelBatch.begin(cam);
 		modelBatch.render(renderList, environment);
 		modelBatch.end();
@@ -383,14 +394,14 @@ public class Othello extends ApplicationAdapter {
 						@Override
 						public void changed(ChangeEvent event, Actor actor) {
 							Player p1 = new LocalPlayer(1, player1TextField.getText(),
-									"data/skin/profile_photo.jpg", OthelloConstants.DiscType.BLACK);
+									"data/skin/profile_photo.jpg", BLACK);
 							int difficultyNum;
 							switch (difficultySelectBox.getSelected()) {
 								case "Easy":
-									difficultyNum = OthelloConstants.AIDifficulty.EASY;
+									difficultyNum = EASY;
 									break;
 								case "Normal":
-									difficultyNum = OthelloConstants.AIDifficulty.NORMAL;
+									difficultyNum = NORMAL;
 									break;
 								case "Hard":
 									difficultyNum = HARD;
@@ -413,7 +424,7 @@ public class Othello extends ApplicationAdapter {
 						@Override
 						public void changed(ChangeEvent event, Actor actor) {
 							Player p1 = new LocalPlayer(1, player1TextField.getText(),
-									"data/skin/profile_photo.jpg", OthelloConstants.DiscType.BLACK);
+									"data/skin/profile_photo.jpg", BLACK);
 							Player p2 = new LocalPlayer(2, player2TextField.getText(),
 									"data/skin/profile_photo.jpg", WHITE);
 							game = new OthelloGame(p1, p2, new LocalOthelloCore());
@@ -543,6 +554,8 @@ public class Othello extends ApplicationAdapter {
 
 	// 本地对战逻辑
 	public void localGameLogic() {
+		if(game.isOver()) return;
+
 		// 优先把动画处理完
 		if (!animationIsOver()) {
 			boardClicked = false;

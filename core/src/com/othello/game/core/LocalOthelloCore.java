@@ -18,8 +18,8 @@ public class LocalOthelloCore extends OthelloCore {
     public boolean addStep(Step step) {
         if(step.getColor() != super.turnColor) {
             System.out.println("LocalOthelloCore: Wrong color!");
+            return false;
         }
-        assert step.getColor() == super.turnColor;
         if(!isValidPosition(step.getPosition(), step.getColor())) {
             System.out.println("LocalOthelloCore: Wrong step!!");
             return false;

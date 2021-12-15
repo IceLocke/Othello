@@ -41,6 +41,10 @@ public abstract class OthelloCore {
     }
 
     public int getTurnColor() {
+        if(getValidPosition(turnColor).size() == 0)
+            reverseColor();
+        if(getValidPosition(turnColor).size() == 0)
+            over = true;
         return turnColor;
     }
 
@@ -86,6 +90,8 @@ public abstract class OthelloCore {
     public abstract boolean addStep(Step step);
 
     public boolean isOver() {
+        if(getValidPosition(BLACK).size() == 0 && getValidPosition(WHITE).size() == 0)
+            over = true;
         return over;
     }
 

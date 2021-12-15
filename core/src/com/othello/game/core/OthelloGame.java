@@ -116,10 +116,7 @@ public class OthelloGame {
     }
 
     public boolean isOver() {
-        if (roundCount == maximumPlay && nowPlay.isOver())
-            return true;
-        else
-            return false;
+        return roundCount == maximumPlay && nowPlay.isOver();
     }
 
 }
