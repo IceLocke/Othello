@@ -50,10 +50,12 @@ public class OthelloGame {
     }
 
     public void switchToNewGame() {
-        roundCount++;
-        if(nowPlay.getWinner() == BLACK) ++player1Score;
-        if(nowPlay.getWinner() == WHITE) ++player2Score;
-        refresh();
+        if (roundCount < maximumPlay) {
+            roundCount++;
+            if (nowPlay.getWinner() == BLACK) ++player1Score;
+            if (nowPlay.getWinner() == WHITE) ++player2Score;
+            refresh();
+        }
     }
 
     public Player getPlayer1() {
@@ -101,12 +103,13 @@ public class OthelloGame {
     }
 
     public Player getWinner() {
-        if(nowPlay.getWinner() == BLACK) ++player1Score;
-        if(nowPlay.getWinner() == WHITE) ++player2Score;
+        int p1Score = player1Score, p2Score = player2Score;
+        if(nowPlay.getWinner() == BLACK) p1Score++;
+        if(nowPlay.getWinner() == WHITE) p2Score++;
         if (isOver()) {
-            if (player1Score > player2Score)
+            if (p1Score > p2Score)
                 return player1;
-            if (player2Score > player1Score)
+            if (p2Score > p1Score)
                 return player2;
         }
         return null;
