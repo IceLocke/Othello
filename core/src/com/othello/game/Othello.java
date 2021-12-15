@@ -40,6 +40,8 @@ import static com.othello.game.utils.OthelloConstants.AIDifficulty.*;
 import static com.othello.game.utils.OthelloConstants.DiscType.*;
 
 public class Othello extends ApplicationAdapter {
+
+	// 3D 部分的变量
 	public PerspectiveCamera cam;
 
 	public Environment environment;
@@ -61,6 +63,7 @@ public class Othello extends ApplicationAdapter {
 	public DiscList discList;
 	public ArrayList<ModelInstance> renderInstanceList;
 
+	// 字体部分的变量
 	public FreeTypeFontGenerator generator;
 	public FreeTypeFontGenerator generatorBold;
 	public BitmapFont font;
@@ -69,10 +72,14 @@ public class Othello extends ApplicationAdapter {
 	public BitmapFont buttonFont;
 	public BitmapFont buttonFontBold;
 
+	// 音效部分的变量
 	public static Sound chessSound1;
 	public static Sound chessSound2;
 	public static Sound bgm;
 	public static long bgmId;
+	public static boolean isMuted;
+
+	// 游戏状态的变量
 	public static int interfaceType = OthelloConstants.InterfaceType.HOME;
 	public static int menuButtonType = OthelloConstants.MenuButtonType.NONE;
 	public static int lastTurnColor = OthelloConstants.DiscType.BLANK;
@@ -83,6 +90,7 @@ public class Othello extends ApplicationAdapter {
 	public static OthelloGame game;
 	public static final float FPS = 1f / 60;
 
+	// 游戏UI相关的变量
 	protected SpriteBatch batch;
 	protected Texture homeLoading;
 	protected Texture homeDefault;
@@ -414,6 +422,7 @@ public class Othello extends ApplicationAdapter {
 							game.setMode(OthelloConstants.GameMode.LOCAL_SINGLE_PLAYER);
 							game.setMaximumPlay(Integer.parseInt(gameRoundSelectBox.getSelected()));
 							interfaceType = OthelloConstants.InterfaceType.GAME;
+							bgm.play(0.01f);
 							initHUD();
 							Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
 						}
@@ -430,12 +439,11 @@ public class Othello extends ApplicationAdapter {
 							game = new OthelloGame(p1, p2, new LocalOthelloCore());
 							game.setMode(OthelloConstants.GameMode.LOCAL_MULTIPLE_PLAYER);
 							game.setMaximumPlay(Integer.parseInt(gameRoundSelectBox.getSelected()));
-
 							game.refresh();
-
 							p1.setCore(game.getNowPlay());
 							p2.setCore(game.getNowPlay());
 							interfaceType = OthelloConstants.InterfaceType.GAME;
+							bgm.play(0.01f);
 							initHUD();
 							Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
 						}
@@ -489,6 +497,7 @@ public class Othello extends ApplicationAdapter {
 		playerTable = new Table();
 		TextButton homeButton = new TextButton("Home", skin);
 		TextButton saveButton = new TextButton("Save", skin);
+		final TextButton muteButton = new TextButton("Mute", skin);
 		final TextButton backButton = new TextButton("Back", skin);
 		Image p1ProfilePhoto = new Image(defaultBlackPlayerProfilePhoto);
 		Image p2ProfilePhoto = new Image(defaultWhitePlayerProfilePhoto);
@@ -497,7 +506,8 @@ public class Othello extends ApplicationAdapter {
 		if (interfaceType != OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU)
 			gameButtonTable.add(saveButton).padLeft(10);
 		gameButtonTable.add(backButton).padLeft(10);
-		gameButtonTable.setPosition(100, 50);
+		gameButtonTable.add(muteButton).padLeft(10);
+		gameButtonTable.setPosition(120, 50);
 
 		homeButton.addListener(new ChangeListener() {
 			@Override
@@ -524,6 +534,22 @@ public class Othello extends ApplicationAdapter {
 				});
 				dialog.setPosition(540, 360);
 				gameStage.addActor(dialog);
+			}
+		});
+
+		muteButton.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				if (isMuted) {
+					bgmId = bgm.play(0.01f);
+					isMuted = false;
+					muteButton.setText("Mute");
+				}
+				else {
+					bgm.stop(bgmId);
+					isMuted = true;
+					muteButton.setText("Unmute");
+				}
 			}
 		});
 
@@ -571,7 +597,8 @@ public class Othello extends ApplicationAdapter {
 				@Override
 				public void run() {
 					game.getNowPlayer().addStep();
-					chessSound1.play(0.1f);
+					if (!isMuted)
+						chessSound1.play(0.1f);
 					aiIsThinking = false;
 				}
 			});
@@ -587,7 +614,8 @@ public class Othello extends ApplicationAdapter {
 			game.getNowPlayer().addStep(
 					new Step(boardClickPosition, game.getNowPlay().getTurnColor())
 			);
-			chessSound1.play(0.1f);
+			if (!isMuted)
+				chessSound1.play(0.1f);
 			for (int i = 1; i <= 8; i++) {
 				for (int j = 1; j <= 8; j++)
 					System.out.printf("%d ", game.getNowPlayBoard()[i][j]);
@@ -722,7 +750,6 @@ public class Othello extends ApplicationAdapter {
 		chessSound1 = Gdx.audio.newSound(Gdx.files.internal("sound/chess_sound1.mp3"));
 		chessSound2 = Gdx.audio.newSound(Gdx.files.internal("sound/chess_sound2.mp3"));
 		bgm = Gdx.audio.newSound(Gdx.files.internal("sound/bgm.mp3"));
-		bgmId = bgm.loop(0.01f);
 
 		System.out.println(Gdx.graphics.getDeltaTime());
 	}

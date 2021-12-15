@@ -67,7 +67,8 @@ public class Disc {
                 @Override
                 public void onEnd(AnimationController.AnimationDesc animation) {
                     animationIsOver = true;
-                    Othello.chessSound2.play(0.1f);
+                    if (!Othello.isMuted)
+                        Othello.chessSound2.play(0.1f);
                 }
 
                 @Override
