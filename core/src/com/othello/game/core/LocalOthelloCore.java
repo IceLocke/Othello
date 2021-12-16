@@ -1,8 +1,10 @@
 package com.othello.game.core;
 
 import com.othello.game.utils.Step;
+import java.io.Serializable;
+import static com.othello.game.utils.OthelloConstants.DiscType.*;
 
-public class LocalOthelloCore extends OthelloCore {
+public class LocalOthelloCore extends OthelloCore implements Serializable {
     public LocalOthelloCore(int turnColor, int[][] board) {
         this.turnColor = turnColor;
         setBoard(board);
@@ -53,5 +55,10 @@ public class LocalOthelloCore extends OthelloCore {
             // 提示该玩家再走一步，但应该不是core来做
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString();
     }
 }

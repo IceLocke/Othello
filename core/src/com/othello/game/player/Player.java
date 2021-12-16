@@ -3,13 +3,15 @@ package com.othello.game.player;
 import com.othello.game.core.OthelloCore;
 import com.othello.game.utils.Step;
 
-public abstract class Player {
+import java.io.Serializable;
+
+public abstract class Player implements Serializable {
     private int playerID;
     private String playerName;
-    private String playerProfilePhotoURL;
+    private String playerProfilePhotoURL = "";
     private int playCount;
     private int winCount;
-    private OthelloCore core;
+    private transient OthelloCore core;
     private int color;
 
     public void setCore(OthelloCore core) {
@@ -82,4 +84,16 @@ public abstract class Player {
 
     abstract public void addStep();
     abstract public void addStep(Step step);
+
+    @Override
+    public String toString() {
+        return "Player{" +
+                "playerID=" + playerID +
+                ", playerName='" + playerName + '\'' +
+                ", playerProfilePhotoURL='" + playerProfilePhotoURL + '\'' +
+                ", playCount=" + playCount +
+                ", winCount=" + winCount +
+                ", color=" + color +
+                '}';
+    }
 }

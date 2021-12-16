@@ -5,13 +5,14 @@ import com.badlogic.gdx.files.FileHandle;
 import com.othello.game.player.Player;
 import com.othello.game.utils.Step;
 
-import java.io.File;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.logging.FileHandler;
 
 import static com.othello.game.utils.OthelloConstants.DiscType.*;
+import static com.othello.game.utils.OthelloConstants.MenuButtonType.*;
 
-public class OthelloGame {
+public class OthelloGame implements Serializable {
 
     /*
     * 每一帧扫描：nowPlay是否结束？若结束，创建新游戏；否则继续当前游戏的下一个回合
@@ -25,10 +26,6 @@ public class OthelloGame {
     private int player1Score;
     private int player2Score;
     private OthelloCore nowPlay;
-
-    public OthelloGame(FileHandle file) {
-
-    }
 
     public OthelloGame(Player p1, Player p2, OthelloCore core) {
         this.player1 = p1;
@@ -98,10 +95,6 @@ public class OthelloGame {
         this.maximumPlay = maximumPlay;
     }
 
-    public void save() {
-
-    }
-
     public Player getWinner() {
         int p1Score = player1Score, p2Score = player2Score;
         if(nowPlay.getWinner() == BLACK) p1Score++;
@@ -119,4 +112,72 @@ public class OthelloGame {
         return roundCount == maximumPlay && nowPlay.isOver();
     }
 
+    public boolean save(int type) {
+        File file;
+        try {
+            FileOutputStream fileOut;
+            if(type == LOCAL_SINGLE_PLAYER) {
+                file = new File("C://Othello");
+                file.mkdir();
+                file = new File("C://Othello/LocalSinglePlayerSaver.ser");
+                file.createNewFile();
+                fileOut = new FileOutputStream("C://Othello/LocalSinglePlayerSaver.ser");
+            } else {
+                file = new File("C://Othello");
+                file.mkdir();
+                file = new File("C://Othello/LocalMultiplePlayerSaver.ser");
+                file.createNewFile();
+                fileOut = new FileOutputStream("C://Othello/LocalMultiplePlayerSaver.ser");
+            }
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(this);
+            out.close();
+            fileOut.close();
+        } catch(IOException i) {
+            i.printStackTrace();
+            System.out.println("Failed to save.");
+            return false;
+        }
+        return true;
+    }
+
+    public static OthelloGame loadGame(int type) {
+        OthelloGame game;
+        try {
+            FileInputStream fileIn;
+            if(type == LOCAL_SINGLE_PLAYER)
+                fileIn = new FileInputStream("C://Othello/LocalSinglePlayerSaver.ser");
+            else
+                fileIn = new FileInputStream("C://Othello/LocalMultiplePlayerSaver.ser");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            game = (OthelloGame) in.readObject();
+            in.close();
+            fileIn.close();
+        } catch (IOException | ClassNotFoundException i) { // 未找到存档/存档损坏
+            i.printStackTrace();
+            System.out.println("No an available save.");
+            return null;
+        }
+        game.giveCoreToPlayer();
+        return game;
+    }
+
+    private void giveCoreToPlayer() {
+        player1.setCore(nowPlay);
+        player2.setCore(nowPlay);
+    }
+
+    @Override
+    public String toString() {
+        return "OthelloGame{" +
+                "mode=" + mode +
+                ", roundCount=" + roundCount +
+                ", maximumPlay=" + maximumPlay +
+                ", player1=" + player1 +
+                ", player2=" + player2 +
+                ", player1Score=" + player1Score +
+                ", player2Score=" + player2Score +
+                ", nowPlay=" + nowPlay +
+                '}';
+    }
 }

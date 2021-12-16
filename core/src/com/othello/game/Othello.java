@@ -98,7 +98,6 @@ public class Othello extends ApplicationAdapter {
 	protected Texture defaultWhitePlayerProfilePhoto;
 	protected int[][] board;
 	protected int[][] newBoard;
-	protected boolean newGame = true;
 
 	protected Skin skin;
 	protected Stage homeStage;
@@ -126,6 +125,8 @@ public class Othello extends ApplicationAdapter {
 	}
 
 	public void backToHome() {
+		isMuted = false;
+		bgm.stop(bgmId);
 		clearBoard();
 		interfaceType = OthelloConstants.InterfaceType.HOME;
 		Gdx.input.setInputProcessor(new HomeInputProcessor());
@@ -385,19 +386,21 @@ public class Othello extends ApplicationAdapter {
 			loadButton.addListener(new ChangeListener() {
 				@Override
 				public void changed(ChangeEvent event, Actor actor) {
-					game = new OthelloGame(Gdx.files.internal("othello.save"));
-					interfaceType = OthelloConstants.InterfaceType.GAME;
-					Gdx.input.setInputProcessor(new GameInputProcessor());
+					game = OthelloGame.loadGame(menuButtonType);
+					if(game == null) {
+						// dialog: 存档损坏或不存在
+						// @IceLocke
+					} else {
+						interfaceType = OthelloConstants.InterfaceType.GAME;
+						bgmId = bgm.loop(0.01f);
+						initHUD();
+						Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
+					}
 				}
 			});
 
 			switch (interfaceType) {
 				case OthelloConstants.InterfaceType.LOCAL_SINGLE_PLAYER_MENU:
-
-					/*
-					* 载入上次存档
-					*/
-
 					startButton.addListener(new ChangeListener() {
 						@Override
 						public void changed(ChangeEvent event, Actor actor) {
@@ -422,7 +425,7 @@ public class Othello extends ApplicationAdapter {
 							game.setMode(OthelloConstants.GameMode.LOCAL_SINGLE_PLAYER);
 							game.setMaximumPlay(Integer.parseInt(gameRoundSelectBox.getSelected()));
 							interfaceType = OthelloConstants.InterfaceType.GAME;
-							bgm.play(0.01f);
+							bgmId = bgm.loop(0.01f);
 							initHUD();
 							Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
 						}
@@ -443,14 +446,13 @@ public class Othello extends ApplicationAdapter {
 							p1.setCore(game.getNowPlay());
 							p2.setCore(game.getNowPlay());
 							interfaceType = OthelloConstants.InterfaceType.GAME;
-							bgm.play(0.01f);
+							bgmId = bgm.loop(0.01f);
 							initHUD();
 							Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
 						}
 					});
 					break;
 				case OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU:
-					;
 					break;
 				default:
 					break;
@@ -520,7 +522,13 @@ public class Othello extends ApplicationAdapter {
 		saveButton.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
-				game.save();
+				if(!game.save(menuButtonType)) {
+					System.out.println("Failed to save...");
+					// dialog: Failed to save.
+					// 基本不可能
+					// @IceLocke
+					return;
+				}
 				final Dialog dialog = new Dialog("\nSaved", skin);
 				dialog.setMovable(false);
 				dialog.setSize(200, 140);
@@ -541,7 +549,7 @@ public class Othello extends ApplicationAdapter {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				if (isMuted) {
-					bgmId = bgm.play(0.01f);
+					bgmId = bgm.loop(0.01f);
 					isMuted = false;
 					muteButton.setText("Mute");
 				}

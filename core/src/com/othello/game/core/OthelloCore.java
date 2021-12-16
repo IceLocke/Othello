@@ -1,16 +1,14 @@
 package com.othello.game.core;
 
-import com.othello.game.utils.OthelloConstants;
+import static com.othello.game.utils.OthelloConstants.DiscType.*;
 import com.othello.game.utils.Position;
 import com.othello.game.utils.Step;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 
-public abstract class OthelloCore {
-    public final int WHITE = OthelloConstants.DiscType.WHITE;
-    public final int BLACK = OthelloConstants.DiscType.BLACK;
-    public final int BLANK = OthelloConstants.DiscType.BLANK;
-
+public abstract class OthelloCore implements Serializable {
     int[][] board; // 可用区间：(1,1)-(8,8)
     int turnColor;
     boolean over;
@@ -106,5 +104,14 @@ public abstract class OthelloCore {
                     ++blackPoints;
         if(whitePoints == blackPoints) return BLANK;
         return whitePoints > blackPoints ? WHITE : BLACK;
+    }
+
+    @Override
+    public String toString() {
+        return "OthelloCore{" +
+                "board=" + Arrays.toString(board) +
+                ", turnColor=" + turnColor +
+                ", over=" + over +
+                '}';
     }
 }
