@@ -9,9 +9,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public abstract class OthelloCore implements Serializable {
-    int[][] board; // 可用区间：(1,1)-(8,8)
-    int turnColor;
-    boolean over;
+    public int[][] board; // 可用区间：(1,1)-(8,8)
+    protected int turnColor;
+    protected boolean over;
 
     public void setBoard(int[][] board) {
         for(int i = 1; i <= 8; ++i)

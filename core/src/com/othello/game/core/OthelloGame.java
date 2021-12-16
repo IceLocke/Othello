@@ -1,13 +1,8 @@
 package com.othello.game.core;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.files.FileHandle;
 import com.othello.game.player.Player;
-import com.othello.game.utils.Step;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.logging.FileHandler;
 
 import static com.othello.game.utils.OthelloConstants.DiscType.*;
 import static com.othello.game.utils.OthelloConstants.MenuButtonType.*;
@@ -165,6 +160,18 @@ public class OthelloGame implements Serializable {
     private void giveCoreToPlayer() {
         player1.setCore(nowPlay);
         player2.setCore(nowPlay);
+    }
+
+    public boolean back() {
+        if(getNowPlayer().getLastPlayedBoard() == null) {
+            System.out.println("Failed to back");
+            return false;
+        }
+        System.out.println("Backed.");
+        System.out.println(getNowPlayer());
+        nowPlay.setBoard(getNowPlayer().getLastPlayedBoard());
+        getNowPlayer().setLastPlayedBoard(null);
+        return true;
     }
 
     @Override

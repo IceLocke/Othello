@@ -4,15 +4,17 @@ import com.othello.game.core.OthelloCore;
 import com.othello.game.utils.Step;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 public abstract class Player implements Serializable {
-    private int playerID;
-    private String playerName;
-    private String playerProfilePhotoURL = "";
-    private int playCount;
-    private int winCount;
+    protected int playerID;
+    protected String playerName;
+    protected String playerProfilePhotoURL = "";
+    protected int playCount;
+    protected int winCount;
+    protected int color;
+    protected int[][] lastPlayedBoard;
     private transient OthelloCore core;
-    private int color;
 
     public void setCore(OthelloCore core) {
         this.core = core;
@@ -82,6 +84,20 @@ public abstract class Player implements Serializable {
         ++winCount;
     }
 
+    public int[][] getLastPlayedBoard() {
+        return lastPlayedBoard;
+    }
+
+    public void setLastPlayedBoard(int[][] lastPlayedBoard) {
+        this.lastPlayedBoard = lastPlayedBoard;
+    }
+
+    public void updateLastPlayedBoard() {
+        lastPlayedBoard = new int[10][10];
+        for(int i = 1; i <= 8; ++i)
+            lastPlayedBoard[i] = core.board[i].clone();
+    }
+
     abstract public void addStep();
     abstract public void addStep(Step step);
 
@@ -94,6 +110,8 @@ public abstract class Player implements Serializable {
                 ", playCount=" + playCount +
                 ", winCount=" + winCount +
                 ", color=" + color +
+                ", lastPlayedBoard=" + Arrays.toString(lastPlayedBoard) +
+                ", core=" + core +
                 '}';
     }
 }

@@ -268,11 +268,13 @@ public class Othello extends ApplicationAdapter {
 						AnimationController newController = discAnimationControllerList.get(discList.getDiscListSize());
 						discList.addDisc(new Disc(i, j, newBoard[i][j], newDiscInstance, newController));
 						renderInstanceList.add(newDiscInstance);
-					} else {
+					} else if(board[i][j] != BLANK) {
 						// 翻转棋子
-						System.out.println("rotating");
 						Disc disc = discList.getDiscAtPosition(i, j);
 						disc.rotate();
+					} else {
+						// 悔棋，移除棋子
+						// @IceLocke
 					}
 				}
 				board[i][j] = newBoard[i][j];
@@ -561,6 +563,18 @@ public class Othello extends ApplicationAdapter {
 			}
 		});
 
+		backButton.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				if(game.back()) {
+
+				} else {
+					// dialog: failed to back
+					// @IceLocke
+				}
+			}
+		});
+
 		player1NameLabel = new Label(game.getPlayer1().getPlayerName(), labelStyle);
 		player2NameLabel = new Label(game.getPlayer2().getPlayerName(), labelStyle);
 		player1WinCountLabel = new Label("", labelStyle);
@@ -613,7 +627,7 @@ public class Othello extends ApplicationAdapter {
 			for (int i = 1; i <= 8; i++) {
 				for (int j = 1; j <= 8; j++)
 					System.out.printf("%d ", game.getNowPlayBoard()[i][j]);
-				System.out.println("");
+				System.out.println();
 			}
 		} else if (boardClicked) {
 			System.out.printf("Othello: detected click, at position: %d %d\n", boardClickPosition.getX(), boardClickPosition.getY());
@@ -627,7 +641,7 @@ public class Othello extends ApplicationAdapter {
 			for (int i = 1; i <= 8; i++) {
 				for (int j = 1; j <= 8; j++)
 					System.out.printf("%d ", game.getNowPlayBoard()[i][j]);
-				System.out.println("");
+				System.out.println();
 			}
 		}
 	}

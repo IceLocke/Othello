@@ -5,7 +5,9 @@ import com.othello.game.core.OthelloCore;
 import com.othello.game.utils.Position;
 import com.othello.game.utils.Step;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 import static com.othello.game.utils.OthelloConstants.AIDifficulty.*;
@@ -13,13 +15,13 @@ import static com.othello.game.utils.OthelloConstants.DiscType.*;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
-public class AIPlayer extends Player {
-    public static final String[] NAMES = {"Easy", "Normal", "Hard"};
-    private final int difficulty;
-
+public class AIPlayer extends Player implements Serializable {
+    private static final String[] NAMES = {"Easy", "Normal", "Hard"};
     private static double[] value = new double[10000];
     private static boolean[] vis = new boolean[10000];
     private static boolean haveGotValue = false;
+
+    private final int difficulty;
 
     private static void DP(int cond) {
         int condNow = cond;
@@ -193,7 +195,7 @@ public class AIPlayer extends Player {
     }
 
     @Override
-    public void addStep(Step step) {}
+    public void addStep(Step step) {} // never use this
 
     @Override
     public void addStep() {
@@ -201,14 +203,13 @@ public class AIPlayer extends Player {
             System.out.println("AIPlayer: Not my turn!");
             return;
         }
-//        assert this.getCore().getTurnColor() == this.getColor();
         ArrayList<Position> validPosition = getCore().getValidPosition();
         if(validPosition.size() == 0) {
             System.out.println("AIPlayer: Nowhere to put!");
             return;
         }
-//        assert validPosition.size() != 0;
 
+        updateLastPlayedBoard();
         System.out.println("AIPlayer: AI working now!");
 
         boolean breakTag = false;
@@ -321,7 +322,20 @@ public class AIPlayer extends Player {
                 this.getCore().addStep(new Step(best, this.getColor()));
                 break;
         }
-
         System.out.println("AIPlayer: AI worked out!");
+    }
+
+    @Override
+    public String toString() {
+        return "AIPlayer{" +
+                "difficulty=" + difficulty +
+                ", playerID=" + playerID +
+                ", playerName='" + playerName + '\'' +
+                ", playerProfilePhotoURL='" + playerProfilePhotoURL + '\'' +
+                ", playCount=" + playCount +
+                ", winCount=" + winCount +
+                ", color=" + color +
+                ", lastPlayedBoard=" + Arrays.toString(lastPlayedBoard) +
+                '}';
     }
 }
