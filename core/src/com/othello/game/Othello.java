@@ -90,6 +90,9 @@ public class Othello extends ApplicationAdapter {
 	public static OthelloGame game;
 	public static final float FPS = 1f / 60;
 
+	// BGM 列表
+	protected String[] bgmList = {"Veibae_BGM", ""};
+
 	// 游戏UI相关的变量
 	protected SpriteBatch batch;
 	protected Texture homeLoading;
@@ -262,19 +265,19 @@ public class Othello extends ApplicationAdapter {
 		for (int i = 1; i <= 8; i++) {
 			for (int j = 1; j <= 8; j++) {
 				if (board[i][j] != newBoard[i][j]) {
-					if (board[i][j] == OthelloConstants.DiscType.BLANK) {
+					if (board[i][j] == BLANK) {
 						// 是新的棋子，将新的棋子加入渲染队列
 						ModelInstance newDiscInstance = discInstanceList.get(discList.getDiscListSize());
 						AnimationController newController = discAnimationControllerList.get(discList.getDiscListSize());
 						discList.addDisc(new Disc(i, j, newBoard[i][j], newDiscInstance, newController));
 						renderInstanceList.add(newDiscInstance);
-					} else if(board[i][j] != BLANK) {
+					} else if (board[i][j] != BLANK && newBoard[i][j] != BLANK) {
 						// 翻转棋子
 						Disc disc = discList.getDiscAtPosition(i, j);
 						disc.rotate();
 					} else {
-						// 悔棋，移除棋子
-						// @IceLocke
+						System.out.println("backed");
+						clearBoard();
 					}
 				}
 				board[i][j] = newBoard[i][j];
@@ -340,6 +343,7 @@ public class Othello extends ApplicationAdapter {
 			Label player2Label = new Label("Player 2", labelStyle);
 			Label difficultyLabel = new Label("Difficulty", labelStyle);
 			final Label gameRoundLabel = new Label("Rounds", labelStyle);
+			final Label bgmLabel = new Label("BGM", labelStyle);
 			Label serverAddressLabel = null;
 			TextButton startButton = new TextButton("Start", skin);
 			final TextButton backButton = new TextButton("Back", skin);
@@ -349,9 +353,11 @@ public class Othello extends ApplicationAdapter {
 			TextField serverAddressTextField = null;
 			final SelectBox<String> difficultySelectBox = new SelectBox(skin);
 			final SelectBox<String> gameRoundSelectBox = new SelectBox(skin);
+			final SelectBox<String> bgmSelectBox = new SelectBox(skin);
 
 			difficultySelectBox.setItems("Easy", "Normal", "Hard");
 			gameRoundSelectBox.setItems("1", "3", "5");
+			bgmSelectBox.setItems();
 
 			switch (menuButtonType) {
 				case OthelloConstants.MenuButtonType.EXIT:
@@ -390,8 +396,18 @@ public class Othello extends ApplicationAdapter {
 				public void changed(ChangeEvent event, Actor actor) {
 					game = OthelloGame.loadGame(menuButtonType);
 					if(game == null) {
-						// dialog: 存档损坏或不存在
-						// @IceLocke
+						final Dialog dialog = new Dialog("Loading failed", skin);
+						dialog.setMovable(false);
+						dialog.setSize(200, 140);
+						dialog.text(new Label("No corresponding save data or data was broken.", skin)).pad(10, 10, 10, 10);
+						dialog.button("OK").pad(10, 10, 10, 10);
+						dialog.getButtonTable().addListener(new ChangeListener() {
+							@Override
+							public void changed(ChangeEvent event, Actor actor) {
+								dialog.remove();
+							}
+						});
+						dialog.setPosition(540, 360);
 					} else {
 						interfaceType = OthelloConstants.InterfaceType.GAME;
 						bgmId = bgm.loop(0.01f);
@@ -524,13 +540,6 @@ public class Othello extends ApplicationAdapter {
 		saveButton.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
-				if(!game.save(menuButtonType)) {
-					System.out.println("Failed to save...");
-					// dialog: Failed to save.
-					// 基本不可能
-					// @IceLocke
-					return;
-				}
 				final Dialog dialog = new Dialog("\nSaved", skin);
 				dialog.setMovable(false);
 				dialog.setSize(200, 140);
@@ -543,6 +552,10 @@ public class Othello extends ApplicationAdapter {
 					}
 				});
 				dialog.setPosition(540, 360);
+				if(!game.save(menuButtonType)) {
+					System.out.println("Failed to save...");
+					dialog.text(new Label("Error. Failed to save.", skin)).pad(10, 10, 10, 10);
+				}
 				gameStage.addActor(dialog);
 			}
 		});

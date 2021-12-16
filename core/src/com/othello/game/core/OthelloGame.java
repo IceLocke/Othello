@@ -128,8 +128,8 @@ public class OthelloGame implements Serializable {
             out.writeObject(this);
             out.close();
             fileOut.close();
-        } catch(IOException i) {
-            i.printStackTrace();
+        } catch(IOException e) {
+            e.printStackTrace();
             System.out.println("Failed to save.");
             return false;
         }
