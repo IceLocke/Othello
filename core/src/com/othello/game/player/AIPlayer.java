@@ -86,6 +86,7 @@ public class AIPlayer extends Player implements Serializable {
         this.setColor(color);
         this.setPlayerID(-1);
         this.setPlayerName("AI-" + NAMES[difficulty]);
+        setLastPlayedBoard(null);
     }
 
     private int getStepCnt() {

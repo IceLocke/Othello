@@ -11,6 +11,7 @@ public class LocalPlayer extends Player implements Serializable {
         this.setPlayCount(0);
         this.setWinCount(0);
         this.setColor(color);
+        setLastPlayedBoard(null);
     }
 
     @Override

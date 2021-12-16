@@ -46,6 +46,8 @@ public class OthelloGame implements Serializable {
             roundCount++;
             if (nowPlay.getWinner() == BLACK) ++player1Score;
             if (nowPlay.getWinner() == WHITE) ++player2Score;
+            player1.setLastPlayedBoard(null);
+            player2.setLastPlayedBoard(null);
             refresh();
         }
     }
