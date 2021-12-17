@@ -473,7 +473,7 @@ public class Othello extends ApplicationAdapter {
 				case OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU:
 
 					/*
-					* @IceLocke
+					* for IceLocke
 					*
 					* 选择：创建服务器 or 链接进服务器
 					*
@@ -597,7 +597,7 @@ public class Othello extends ApplicationAdapter {
 
 				} else {
 					// dialog: failed to back
-					// @IceLocke
+					// for IceLocke
 				}
 			}
 		});
