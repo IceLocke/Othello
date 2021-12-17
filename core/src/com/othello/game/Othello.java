@@ -471,6 +471,20 @@ public class Othello extends ApplicationAdapter {
 					});
 					break;
 				case OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU:
+
+					/*
+					* @IceLocke
+					*
+					* 选择：创建服务器 or 链接进服务器
+					*
+					* if 创建服务器
+					* 		创建服务器
+					* 		本机玩家为本地玩家（黑棋）
+					* 		等带对手链接
+					* else
+					* 		输入ip+端口号
+					* 		尝试链接
+					* */
 					break;
 				default:
 					break;
