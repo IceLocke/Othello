@@ -8,8 +8,6 @@ public class LocalPlayer extends Player implements Serializable {
         this.setPlayerID(playerID);
         this.setPlayerName(playerName);
         this.setPlayerProfilePhotoURL(URL);
-        this.setPlayCount(0);
-        this.setWinCount(0);
         this.setColor(color);
         setLastPlayedBoard(null);
     }

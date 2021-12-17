@@ -333,8 +333,6 @@ public class AIPlayer extends Player implements Serializable {
                 ", playerID=" + playerID +
                 ", playerName='" + playerName + '\'' +
                 ", playerProfilePhotoURL='" + playerProfilePhotoURL + '\'' +
-                ", playCount=" + playCount +
-                ", winCount=" + winCount +
                 ", color=" + color +
                 ", lastPlayedBoard=" + Arrays.toString(lastPlayedBoard) +
                 '}';

@@ -13,6 +13,13 @@ public abstract class OthelloCore implements Serializable {
     protected int turnColor;
     protected boolean over;
 
+    public boolean check() {
+        if(board.length != 10) return false;
+        for(int i = 0; i <= 9; ++i)
+            if(board[i].length != 10) return false;
+        return turnColor == BLACK || turnColor == WHITE;
+    }
+
     public void setBoard(int[][] board) {
         for(int i = 1; i <= 8; ++i)
             this.board[i] = board[i].clone();

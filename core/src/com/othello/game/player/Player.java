@@ -6,15 +6,19 @@ import com.othello.game.utils.Step;
 import java.io.Serializable;
 import java.util.Arrays;
 
+import static com.othello.game.utils.OthelloConstants.DiscType.*;
+
 public abstract class Player implements Serializable {
     protected int playerID;
     protected String playerName;
     protected String playerProfilePhotoURL = "";
-    protected int playCount;
-    protected int winCount;
     protected int color;
     protected int[][] lastPlayedBoard;
     private transient OthelloCore core;
+
+    public boolean check() {
+        return color == WHITE || color == BLACK;
+    }
 
     public void setCore(OthelloCore core) {
         this.core = core;
@@ -36,20 +40,12 @@ public abstract class Player implements Serializable {
         this.playerID = playerID;
     }
 
-    public void setPlayCount(int playCount) {
-        this.playCount = playCount;
-    }
-
     public void setPlayerName(String playerName) {
         this.playerName = playerName;
     }
 
     public void setPlayerProfilePhotoURL(String playerProfilePhotoURL) {
         this.playerProfilePhotoURL = playerProfilePhotoURL;
-    }
-
-    public void setWinCount(int winCount) {
-        this.winCount = winCount;
     }
 
     public int getID() {
@@ -66,22 +62,6 @@ public abstract class Player implements Serializable {
 
     public int getColor() {
         return color;
-    }
-
-    public int getPlayCount() {
-        return playCount;
-    }
-
-    public int getWinCount() {
-        return winCount;
-    }
-
-    public void addPlayCount() {
-        ++playCount;
-    }
-
-    public void addWinCount() {
-        ++winCount;
     }
 
     public int[][] getLastPlayedBoard() {
@@ -107,8 +87,6 @@ public abstract class Player implements Serializable {
                 "playerID=" + playerID +
                 ", playerName='" + playerName + '\'' +
                 ", playerProfilePhotoURL='" + playerProfilePhotoURL + '\'' +
-                ", playCount=" + playCount +
-                ", winCount=" + winCount +
                 ", color=" + color +
                 ", lastPlayedBoard=" + Arrays.toString(lastPlayedBoard) +
                 ", core=" + core +

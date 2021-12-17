@@ -37,19 +37,35 @@ public class OnlineOthelloServer {
         }
     }
 
+    private boolean connecting = false;
+    private boolean connected = false;
     public void connectWithClient() {
-        try {
-            socket = server.accept();
-            System.out.println("Connected successfully.");
-        } catch(IOException e) {
-            System.out.println("Failed to connect.");
-            e.printStackTrace();
+        if(!connecting) {
+            Gdx.app.postRunnable(new Runnable() {
+                @Override
+                public void run() {
+                    connecting = true;
+                    try {
+                        socket = server.accept();
+                        System.out.println("Connected successfully.");
+                    } catch (IOException e) {
+                        System.out.println("Failed to connect.");
+                        e.printStackTrace();
+                    }
+                    try {
+                        dataInputStream = new DataInputStream(socket.getInputStream());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    connecting = false;
+                    connected = true;
+                }
+            });
         }
-        try {
-            dataInputStream = new DataInputStream(socket.getInputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    }
+
+    public boolean isConnected() {
+        return connected;
     }
 
     public String getIP() {

@@ -22,6 +22,16 @@ public class OthelloGame implements Serializable {
     private int player2Score;
     private OthelloCore nowPlay;
 
+    public boolean check() {
+        if(!nowPlay.check()) return false;
+        if(mode < 0 || mode > 4) return false;
+        if(!player1.check()) return false;
+        if(!player2.check()) return false;
+        if(player1Score + player2Score > roundCount) return false;
+        if(roundCount > maximumPlay) return false;
+        return true;
+    }
+
     public OthelloGame(Player p1, Player p2, OthelloCore core) {
         this.player1 = p1;
         this.player2 = p2;
@@ -156,6 +166,8 @@ public class OthelloGame implements Serializable {
             return null;
         }
         game.giveCoreToPlayer();
+        if(!game.check()) return null;
+        System.out.println("Saver passed checker.");
         return game;
     }
 

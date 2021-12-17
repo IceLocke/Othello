@@ -12,7 +12,8 @@ public interface OthelloConstants {
     interface GameMode {
         int LOCAL_MULTIPLE_PLAYER = 1;
         int LOCAL_SINGLE_PLAYER = 2;
-        int ONLINE_MULTIPLE_PLAYER = 3;
+        int ONLINE_LOCAL_PLAYER = 3;
+        int ONLINE_REMOTE_PLAYER = 4;
     }
 
     interface DiscType {

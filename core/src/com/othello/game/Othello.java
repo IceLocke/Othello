@@ -29,9 +29,12 @@ import com.othello.game.core.LocalOthelloCore;
 import com.othello.game.core.OthelloGame;
 import com.othello.game.player.AIPlayer;
 import com.othello.game.player.LocalPlayer;
+import com.othello.game.player.OnlinePlayer;
 import com.othello.game.player.Player;
 import com.othello.game.processor.GameInputProcessor;
 import com.othello.game.processor.HomeInputProcessor;
+import com.othello.game.server.OnlineOthelloClient;
+import com.othello.game.server.OnlineOthelloServer;
 import com.othello.game.utils.*;
 
 import java.util.ArrayList;
@@ -119,6 +122,10 @@ public class Othello extends ApplicationAdapter {
 	protected TextButton.TextButtonStyle buttonStyle;
 	protected TextField.TextFieldStyle textFieldStyle;
 	protected SelectBox.SelectBoxStyle selectBoxStyle;
+
+	// 在线部分by kl
+	protected OnlineOthelloServer server;
+	protected OnlineOthelloClient client;
 
 	public boolean animationIsOver() {
 		boolean over = true;
@@ -228,32 +235,30 @@ public class Othello extends ApplicationAdapter {
 			}
 			// game over
 			// local
-			else if (game.isOver()) {
-				if (game.getMode() != OthelloConstants.GameMode.ONLINE_MULTIPLE_PLAYER) {
-					if(!dialog1Existed) {
-						dialog1Existed = true;
-						dialog1 = new Dialog("\nGame Over", skin);
-						dialog1.setMovable(false);
-						dialog1.setSize(200, 140);
-						dialog1.button("OK").pad(10, 10, 10, 10);
-						dialog1.getButtonTable().addListener(new ChangeListener() {
-							@Override
-							public void changed(ChangeEvent event, Actor actor) {
-								dialog1Existed = false;
-								gameStage.dispose();
-								clearBoard();
-								dialog1.remove();
-								backToHome();
-							}
-						});
-						dialog1.setPosition(540, 360);
-						gameStage.addActor(dialog1);
-						if (game.getWinner() != null)
-							dialog1.text(new Label(String.format("%s wins!", game.getWinner().getPlayerName()), skin)).pad(10, 10, 10, 10);
-						else
-							dialog1.text(new Label("Draw!", skin)).pad(10, 10, 10, 10);
-					}
+			else {
+				if (!dialog1Existed) {
+					dialog1Existed = true;
+					dialog1 = new Dialog("\nGame Over", skin);
+					dialog1.setMovable(false);
+					dialog1.setSize(200, 140);
+					dialog1.button("OK").pad(10, 10, 10, 10);
+					dialog1.getButtonTable().addListener(new ChangeListener() {
+						@Override
+						public void changed(ChangeEvent event, Actor actor) {
+							dialog1Existed = false;
+							gameStage.dispose();
+							clearBoard();
+							dialog1.remove();
+							backToHome();
+						}
+					});
 				}
+				dialog1.setPosition(540, 360);
+				if (game.getWinner() != null)
+					dialog1.text(new Label(String.format("%s wins!", game.getWinner().getPlayerName()), skin)).pad(10, 10, 10, 10);
+				else
+					dialog1.text(new Label("Draw!", skin)).pad(10, 10, 10, 10);
+				gameStage.addActor(dialog1);
 			}
 		}
 
@@ -323,7 +328,7 @@ public class Othello extends ApplicationAdapter {
 		gameStage.draw();
 
 		// 最后处理操作
-		localGameLogic();
+		gameLogic();
 	}
 
 	// 主菜单逻辑
@@ -471,7 +476,25 @@ public class Othello extends ApplicationAdapter {
 					});
 					break;
 				case OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU:
-
+					TextButton createServer = new TextButton("create", skin);
+					TextButton joinServer = new TextButton("join", skin);
+					createServer.addListener(new ChangeListener() {
+						@Override
+						public void changed(ChangeEvent event, Actor actor) {
+							server = new OnlineOthelloServer();
+							Player p1 = new LocalPlayer(1, "Local Player(server)",
+									"data/skin/profile_photo.jpg", BLACK);
+							Player p2 = new OnlinePlayer(-2, "Remote Player",
+									"data/skin/profile_photo.jpg", WHITE);
+							game = new OthelloGame(p1, p2, new LocalOthelloCore());
+							game.setMode(OthelloConstants.GameMode.ONLINE_LOCAL_PLAYER);
+							game.setMaximumPlay(3);
+							game.refresh();
+							bgmId = bgm.loop(0.01f);
+							interfaceType = OthelloConstants.InterfaceType.GAME;
+							server.connectWithClient();
+						}
+					});
 					/*
 					* for IceLocke
 					*
@@ -516,10 +539,7 @@ public class Othello extends ApplicationAdapter {
 				homeTable.add(startButton).width(100);
 				homeTable.add(loadButton).width(100);
 				homeTable.add(backButton).width(100);
-			}
-
-			// 在线游戏的绘制
-			else {
+			} else { // 在线游戏的绘制
 
 			}
 		}
@@ -536,10 +556,11 @@ public class Othello extends ApplicationAdapter {
 		Image p1ProfilePhoto = new Image(defaultBlackPlayerProfilePhoto);
 		Image p2ProfilePhoto = new Image(defaultWhitePlayerProfilePhoto);
 
-		gameButtonTable.add(homeButton);
-		if (interfaceType != OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU)
+		if (interfaceType != OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU) {
+			gameButtonTable.add(homeButton);
 			gameButtonTable.add(saveButton).padLeft(10);
-		gameButtonTable.add(backButton).padLeft(10);
+			gameButtonTable.add(backButton).padLeft(10);
+		}
 		gameButtonTable.add(muteButton).padLeft(10);
 		gameButtonTable.setPosition(120, 50);
 
@@ -627,8 +648,8 @@ public class Othello extends ApplicationAdapter {
 		gameStage.addActor(gameButtonTable);
 	}
 
-	// 本地对战逻辑
-	public void localGameLogic() {
+	// 对战逻辑
+	public void gameLogic() {
 		if(game.isOver()) return;
 
 		// 优先把动画处理完
@@ -638,7 +659,7 @@ public class Othello extends ApplicationAdapter {
 		}
 
 		// 下棋的逻辑
-		if(game.getNowPlayer().getID() == -1) {
+		if(game.getNowPlayer().getID() == -1) { // AI
 			if (aiIsThinking)
 				return;
 			aiIsThinking = true;
@@ -656,7 +677,9 @@ public class Othello extends ApplicationAdapter {
 					System.out.printf("%d ", game.getNowPlayBoard()[i][j]);
 				System.out.println();
 			}
-		} else if (boardClicked) {
+		} else if(game.getNowPlayer().getID() == -2) { // Online
+
+		} else if(boardClicked) {
 			System.out.printf("Othello: detected click, at position: %d %d\n", boardClickPosition.getX(), boardClickPosition.getY());
 			boardClicked = false;
 			System.out.printf("Othello: addStep(%d, %d, %d)\n", boardClickPosition.getX(), boardClickPosition.getY(), game.getNowPlay().getTurnColor());
@@ -671,11 +694,6 @@ public class Othello extends ApplicationAdapter {
 				System.out.println();
 			}
 		}
-	}
-
-	// 在线对战逻辑
-	public void onlineGameLogic() {
-
 	}
 
 	@Override
