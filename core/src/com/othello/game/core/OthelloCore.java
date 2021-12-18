@@ -13,6 +13,16 @@ public abstract class OthelloCore implements Serializable {
     protected int turnColor;
     protected boolean over;
 
+    private transient boolean cheat = false;
+
+    public void setCheat(boolean cheat) {
+        this.cheat = cheat;
+    }
+
+    public boolean isCheat() {
+        return cheat;
+    }
+
     public boolean check() {
         if(board.length != 10) return false;
         for(int i = 0; i <= 9; ++i)
@@ -60,6 +70,7 @@ public abstract class OthelloCore implements Serializable {
     public boolean isValidPosition(Position position, int color) {
         if(this.getBoard()[position.getX()][position.getY()] != BLANK)
             return false;
+        if(cheat) return true;
         final int[] dx = {1, 1, 1, 0, 0, -1, -1, -1};
         final int[] dy = {1, 0, -1, 1, -1, 1, 0, -1};
         int x = position.getX();
