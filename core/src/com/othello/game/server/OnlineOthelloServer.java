@@ -157,7 +157,8 @@ public class OnlineOthelloServer {
 
     public void disconnect() {
         try {
-            dataOutputStream.writeUTF("Disconnect");
+            if (dataOutputStream != null)
+                dataOutputStream.writeUTF("Disconnect");
         } catch (IOException e) {
             e.printStackTrace();
         }

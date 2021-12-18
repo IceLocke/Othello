@@ -24,7 +24,12 @@ public class OthelloGame implements Serializable {
 
     private boolean cheat = false;
 
+    public int getRoundCount() {
+        return roundCount;
+    }
+
     public void setCheat(boolean cheat) {
+        this.nowPlay.setCheat(cheat);
         this.cheat = cheat;
     }
 
@@ -59,6 +64,7 @@ public class OthelloGame implements Serializable {
 
     public void refresh() {
         nowPlay.refresh();
+        nowPlay.setCheat(cheat);
     }
 
     public void switchToNewGame() {
