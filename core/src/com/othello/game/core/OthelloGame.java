@@ -1,17 +1,13 @@
 package com.othello.game.core;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.files.FileHandle;
 import com.othello.game.player.Player;
-import com.othello.game.utils.Step;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.logging.FileHandler;
+import java.io.*;
 
 import static com.othello.game.utils.OthelloConstants.DiscType.*;
+import static com.othello.game.utils.OthelloConstants.MenuButtonType.*;
 
-public class OthelloGame {
+public class OthelloGame implements Serializable {
 
     /*
     * 每一帧扫描：nowPlay是否结束？若结束，创建新游戏；否则继续当前游戏的下一个回合
@@ -26,8 +22,24 @@ public class OthelloGame {
     private int player2Score;
     private OthelloCore nowPlay;
 
-    public OthelloGame(FileHandle file) {
+    private boolean cheat = false;
 
+    public void setCheat(boolean cheat) {
+        this.cheat = cheat;
+    }
+
+    public boolean isCheat() {
+        return cheat;
+    }
+
+    public boolean check() {
+        if(!nowPlay.check()) return false;
+        if(mode < 0 || mode > 4) return false;
+        if(!player1.check()) return false;
+        if(!player2.check()) return false;
+        if(player1Score + player2Score > roundCount) return false;
+        if(roundCount > maximumPlay) return false;
+        return true;
     }
 
     public OthelloGame(Player p1, Player p2, OthelloCore core) {
@@ -54,6 +66,8 @@ public class OthelloGame {
             roundCount++;
             if (nowPlay.getWinner() == BLACK) ++player1Score;
             if (nowPlay.getWinner() == WHITE) ++player2Score;
+            player1.setLastPlayedBoard(null);
+            player2.setLastPlayedBoard(null);
             refresh();
         }
     }
@@ -98,10 +112,6 @@ public class OthelloGame {
         this.maximumPlay = maximumPlay;
     }
 
-    public void save() {
-
-    }
-
     public Player getWinner() {
         int p1Score = player1Score, p2Score = player2Score;
         if(nowPlay.getWinner() == BLACK) p1Score++;
@@ -119,4 +129,88 @@ public class OthelloGame {
         return roundCount == maximumPlay && nowPlay.isOver();
     }
 
+    public boolean save(int type) {
+        File file;
+        try {
+            FileOutputStream fileOut;
+            if(type == LOCAL_SINGLE_PLAYER) {
+                file = new File("C://Othello");
+                file.mkdir();
+                file = new File("C://Othello/LocalSinglePlayerSaver.ser");
+                file.createNewFile();
+                fileOut = new FileOutputStream("C://Othello/LocalSinglePlayerSaver.ser");
+            } else {
+                file = new File("C://Othello");
+                file.mkdir();
+                file = new File("C://Othello/LocalMultiplePlayerSaver.ser");
+                file.createNewFile();
+                fileOut = new FileOutputStream("C://Othello/LocalMultiplePlayerSaver.ser");
+            }
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(this);
+            out.close();
+            fileOut.close();
+        } catch(IOException e) {
+            e.printStackTrace();
+            System.out.println("Failed to save.");
+            return false;
+        }
+        return true;
+    }
+
+    public static OthelloGame loadGame(int type) {
+        OthelloGame game;
+        try {
+            FileInputStream fileIn;
+            if(type == LOCAL_SINGLE_PLAYER)
+                fileIn = new FileInputStream("C://Othello/LocalSinglePlayerSaver.ser");
+            else
+                fileIn = new FileInputStream("C://Othello/LocalMultiplePlayerSaver.ser");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            game = (OthelloGame) in.readObject();
+            in.close();
+            fileIn.close();
+        } catch (IOException | ClassNotFoundException i) { // 未找到存档/存档损坏
+            i.printStackTrace();
+            System.out.println("No an available save.");
+            return null;
+        }
+        game.giveCoreToPlayer();
+        game.nowPlay.setCheat(game.cheat);
+        if(!game.check()) return null;
+        System.out.println("Saver passed checker.");
+        return game;
+    }
+
+    private void giveCoreToPlayer() {
+        player1.setCore(nowPlay);
+        player2.setCore(nowPlay);
+    }
+
+    public boolean back() {
+        if(getNowPlayer().getLastPlayedBoard() == null) {
+            System.out.println("Failed to back");
+            return false;
+        }
+        System.out.println("Backed.");
+        System.out.println(getNowPlayer());
+        nowPlay.setBoard(getNowPlayer().getLastPlayedBoard());
+        getNowPlayer().setLastPlayedBoard(null);
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "OthelloGame{" +
+                "mode=" + mode +
+                ", roundCount=" + roundCount +
+                ", maximumPlay=" + maximumPlay +
+                ", player1=" + player1 +
+                ", player2=" + player2 +
+                ", player1Score=" + player1Score +
+                ", player2Score=" + player2Score +
+                ", nowPlay=" + nowPlay +
+                ", cheat=" + cheat +
+                '}';
+    }
 }

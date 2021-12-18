@@ -2,8 +2,6 @@ package com.othello.game.server;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net;
-import com.badlogic.gdx.net.ServerSocket;
-import com.badlogic.gdx.net.ServerSocketHints;
 import com.badlogic.gdx.net.Socket;
 import com.badlogic.gdx.net.SocketHints;
 import com.badlogic.gdx.utils.GdxRuntimeException;
@@ -14,72 +12,39 @@ import com.othello.game.utils.Step;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Scanner;
 
-public class OnlineOthelloServer {
-    private String IP = "";
+public class OnlineOthelloClient {
     private int port;
-    private ServerSocket server;
+    private String IP;
     private Socket socket;
-    private DataInputStream dataInputStream;
     private DataOutputStream dataOutputStream;
-    public OnlineOthelloServer() {
-        try {
-            IP = InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException u) {
-            System.out.println("Failed to get Local IP.");
-        }
-
-        port = (int)(Math.random() * 9999 + 10000);
-
-        System.out.println("IP = " + IP);
-        System.out.println("port = " + port);
-        try {
-            server = Gdx.net.newServerSocket(Net.Protocol.TCP, port, new ServerSocketHints());
-        } catch (Exception e) {
-            port = (int)(Math.random() * 9999 + 10000);
-            server = Gdx.net.newServerSocket(Net.Protocol.TCP, port, new ServerSocketHints());
-        }
+    private DataInputStream dataInputStream;
+    public OnlineOthelloClient(String IP, int port) {
+        this.IP = IP;
+        this.port = port;
     }
 
-    private boolean connecting = false;
-    private boolean connected = false;
-    public void connectWithClient() {
-        if(connecting) return; // ?
-        connecting = true;
+    public void connectWithServer() {
         try {
-            System.out.println("Try");
-            socket = server.accept(new SocketHints());
-        } catch(GdxRuntimeException e) {
-            System.out.println("Failed");
-            connecting = false;
-            return;
+            socket = Gdx.net.newClientSocket(Net.Protocol.TCP, IP, port, new SocketHints());
+            dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            dataInputStream = new DataInputStream(socket.getInputStream());
+        } catch(NullPointerException | GdxRuntimeException e) {
+            socket = null;
+            e.printStackTrace();
         }
-        connecting = false;
-        connected = true;
-        System.out.println("Connected successfully.");
-        dataInputStream = new DataInputStream(socket.getInputStream());
-        dataOutputStream = new DataOutputStream(socket.getOutputStream());
     }
 
     public boolean isConnected() {
-        return connected;
-    }
-
-    public String getIP() {
-        return IP;
-    }
-
-    public int getPort() {
-        return port;
+        return socket != null;
     }
 
     private boolean isReceiving = false;
     private boolean isReceived = false;
     private Position lastReceived;
     private String remoteName = null;
+    private int maximumRound = 0;
 
     public Position receive() {
         if(isReceiving) return null;
@@ -97,7 +62,7 @@ public class OnlineOthelloServer {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    System.out.println(string);
+
                     if (string.contains("#Step#")) {
                         System.out.println("receive step");
                         Scanner scanner = new Scanner(string.split("#Step#")[1]);
@@ -108,6 +73,7 @@ public class OnlineOthelloServer {
                         isReceiving = false;
                         isReceived = true;
                     }
+
                     if (string.contains("#Name#")) {
                         System.out.println("receive name");
                         remoteName = string.split("#Name#")[1];
@@ -115,8 +81,14 @@ public class OnlineOthelloServer {
                         isReceived = true;
                     }
 
+                    if (string.contains("#Round#")) {
+                        System.out.println("receive name");
+                        maximumRound = Integer.parseInt(string.split("#Round#")[1]);
+                        isReceiving = false;
+                        isReceived = true;
+                    }
+
                     if (string.contains("Disconnect")) {
-                        System.out.println("disconnect");
                         Othello.remotePlayerDisconnected = true;
                         isReceiving = false;
                         isReceived = true;
@@ -143,12 +115,8 @@ public class OnlineOthelloServer {
         }
     }
 
-    public void sendMaximumRound(int round) {
-        try {
-            dataOutputStream.writeUTF(String.format("#Round#%d", round));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public int getMaximumRound() {
+        return maximumRound;
     }
 
     public String getRemoteName() {

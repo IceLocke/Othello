@@ -20,9 +20,7 @@ public class GameInputProcessor extends InputAdapter {
     }
 
     public boolean isInsideBoardBoundary(int x, int y) {
-        if (x < leftUpBoundaryX || x > rightBottomBoundaryX || y < leftUpBoundaryY || y > rightBottomBoundaryY)
-            return false;
-        else return true;
+        return x >= leftUpBoundaryX && x <= rightBottomBoundaryX && y >= leftUpBoundaryY && y <= rightBottomBoundaryY;
     }
 
     @Override

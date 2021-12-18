@@ -5,7 +5,9 @@ import com.othello.game.core.OthelloCore;
 import com.othello.game.utils.Position;
 import com.othello.game.utils.Step;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 import static com.othello.game.utils.OthelloConstants.AIDifficulty.*;
@@ -13,16 +15,23 @@ import static com.othello.game.utils.OthelloConstants.DiscType.*;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
-public class AIPlayer extends Player {
-    public static final String[] NAMES = {"Easy", "Normal", "Hard"};
-    private final int difficulty;
-
+public class AIPlayer extends Player implements Serializable {
+    private static final String[] NAMES = {"Easy", "Normal", "Hard"};
     private static double[] value = new double[10000];
     private static boolean[] vis = new boolean[10000];
     private static boolean haveGotValue = false;
 
+    private final int difficulty;
+
     private static void DP(int cond) {
-        int condNow = cond;
+        /*
+        * 用动态规划求出一条边在某个状态下的胜算有多大
+        * 对于一条已经占满的边，认为一个同色棋子得1分，异色棋子扣1分，角落则是得扣2分。
+        * 对于一条没有完全占满的边进行记忆化搜索，一般情况下考虑下一步等概率在空格子上落子，
+        * 特别地，周围有一个异色棋子时认为落子概率加倍，周围有两个同色棋子时认为落子概率为0。
+        * 最后对所有可以转移到的状态求平均分。
+        * */
+        int condNow = cond; // 状态压缩
         vis[cond] = true;
         int W = 0;
         int[] board = new int[10];
@@ -38,6 +47,13 @@ public class AIPlayer extends Player {
                 value[condNow] += board[i];
             return;
         }
+
+        /*
+        * 统计得分时，假设自己为白棋（白的值为1）
+        * 因此得分就是颜色，如果颜色相反则直接取负（因为得分“正比于”颜色）
+        *
+        * */
+
         for(int i = 1; i <= 8; ++i)
             if(board[i] == BLANK) {
                 if(!(board[i+1] == WHITE && board[i-1] == WHITE)) {
@@ -69,11 +85,11 @@ public class AIPlayer extends Player {
                     board[i] = BLANK;
                 }
             }
-        value[condNow] /= W;
+        value[condNow] /= W; // 分数对总权重取平均
     }
 
     private static void getValue() {
-        for(int i = 0; i < 6561; ++i)
+        for(int i = 0; i < 6561; ++i) // 6561 = 3^8
             if(!vis[i]) DP(i);
     }
 
@@ -84,6 +100,7 @@ public class AIPlayer extends Player {
         this.setColor(color);
         this.setPlayerID(-1);
         this.setPlayerName("AI-" + NAMES[difficulty]);
+        setLastPlayedBoard(null);
     }
 
     private int getStepCnt() {
@@ -178,7 +195,7 @@ public class AIPlayer extends Player {
                 core.addStep(new Step(position, color));
                 points = max(points, search(color, steps - 1, core.getTurnColor() == -color ? points : 1e20, core));
                 if(points > limit) return limit;
-                // 已经超过了之前同根的最小值，自己取max后再取min一定没有贡献
+                // Alpha-Beta剪枝：已经超过了之前同根状态的最小值，自己取max后再取min一定没有贡献
             }
         } else {
             points = 1e20;
@@ -193,7 +210,7 @@ public class AIPlayer extends Player {
     }
 
     @Override
-    public void addStep(Step step) {}
+    public void addStep(Step step) {} // never use this
 
     @Override
     public void addStep() {
@@ -201,14 +218,13 @@ public class AIPlayer extends Player {
             System.out.println("AIPlayer: Not my turn!");
             return;
         }
-//        assert this.getCore().getTurnColor() == this.getColor();
         ArrayList<Position> validPosition = getCore().getValidPosition();
         if(validPosition.size() == 0) {
             System.out.println("AIPlayer: Nowhere to put!");
             return;
         }
-//        assert validPosition.size() != 0;
 
+        updateLastPlayedBoard();
         System.out.println("AIPlayer: AI working now!");
 
         boolean breakTag = false;
@@ -224,6 +240,9 @@ public class AIPlayer extends Player {
                 * 2，否则，抢角
                 * 3，否则，尝试下在边上，满足下一步不会被对手翻回
                 * 4，否则，选令对手行动力最小的一步（优先非星位）
+                *
+                * 注：该难度为原先设计的困难难度，但发现稍有经验的选手非常容易击败，于是设计了现在基于动态规划和博弈搜索的AI
+                *
                 * */
 
                 // 1
@@ -280,7 +299,7 @@ public class AIPlayer extends Player {
                 * 否则，如果存在一步可以让自己连走，走这一步
                 * 否则，假设对手足够聪明，深搜6层（一般情况下是各下3步），对最坏局面进行评估，计算四条边上自己颜色的得分之和
                 * 四条边对占满情况进行估值，其他情况以一定概率进行记忆化搜索转移
-                * 否则计算“下一次这条边上落子后期望得分”，记忆化搜索出下一步的状态，去除不可能转移的状态（两侧都为同色不可能落子），对可直接转移的状态提供3倍权重
+                * 否则计算“下一次这条边上落子后期望得分”，记忆化搜索出下一步的状态，去除不可能转移的状态（两侧都为同色不可能落子），对可直接转移的状态提供2倍权重
                 * */
 
                 if(getStepCnt() >= 50) {
@@ -321,7 +340,18 @@ public class AIPlayer extends Player {
                 this.getCore().addStep(new Step(best, this.getColor()));
                 break;
         }
-
         System.out.println("AIPlayer: AI worked out!");
+    }
+
+    @Override
+    public String toString() {
+        return "AIPlayer{" +
+                "difficulty=" + difficulty +
+                ", playerID=" + playerID +
+                ", playerName='" + playerName + '\'' +
+                ", playerProfilePhotoURL='" + playerProfilePhotoURL + '\'' +
+                ", color=" + color +
+                ", lastPlayedBoard=" + Arrays.toString(lastPlayedBoard) +
+                '}';
     }
 }

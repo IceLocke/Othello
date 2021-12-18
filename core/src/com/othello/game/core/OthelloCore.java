@@ -1,19 +1,34 @@
 package com.othello.game.core;
 
-import com.othello.game.utils.OthelloConstants;
+import static com.othello.game.utils.OthelloConstants.DiscType.*;
 import com.othello.game.utils.Position;
 import com.othello.game.utils.Step;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 
-public abstract class OthelloCore {
-    public final int WHITE = OthelloConstants.DiscType.WHITE;
-    public final int BLACK = OthelloConstants.DiscType.BLACK;
-    public final int BLANK = OthelloConstants.DiscType.BLANK;
+public abstract class OthelloCore implements Serializable {
+    public int[][] board; // 可用区间：(1,1)-(8,8)
+    protected int turnColor;
+    protected boolean over;
 
-    int[][] board; // 可用区间：(1,1)-(8,8)
-    int turnColor;
-    boolean over;
+    private transient boolean cheat = false;
+
+    public void setCheat(boolean cheat) {
+        this.cheat = cheat;
+    }
+
+    public boolean isCheat() {
+        return cheat;
+    }
+
+    public boolean check() {
+        if(board.length != 10) return false;
+        for(int i = 0; i <= 9; ++i)
+            if(board[i].length != 10) return false;
+        return turnColor == BLACK || turnColor == WHITE;
+    }
 
     public void setBoard(int[][] board) {
         for(int i = 1; i <= 8; ++i)
@@ -55,6 +70,7 @@ public abstract class OthelloCore {
     public boolean isValidPosition(Position position, int color) {
         if(this.getBoard()[position.getX()][position.getY()] != BLANK)
             return false;
+        if(cheat) return true;
         final int[] dx = {1, 1, 1, 0, 0, -1, -1, -1};
         final int[] dy = {1, 0, -1, 1, -1, 1, 0, -1};
         int x = position.getX();
@@ -106,5 +122,14 @@ public abstract class OthelloCore {
                     ++blackPoints;
         if(whitePoints == blackPoints) return BLANK;
         return whitePoints > blackPoints ? WHITE : BLACK;
+    }
+
+    @Override
+    public String toString() {
+        return "OthelloCore{" +
+                "board=" + Arrays.toString(board) +
+                ", turnColor=" + turnColor +
+                ", over=" + over +
+                '}';
     }
 }
