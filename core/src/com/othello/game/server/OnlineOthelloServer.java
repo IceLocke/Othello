@@ -107,7 +107,6 @@ public class OnlineOthelloServer {
                         lastReceived = new Position(x, y);
                         isReceiving = false;
                         isReceived = true;
-                        return;
                     }
                     if (string.contains("#Name#")) {
                         System.out.println("receive name");
@@ -121,7 +120,6 @@ public class OnlineOthelloServer {
                         Othello.remotePlayerDisconnected = true;
                         isReceiving = false;
                         isReceived = true;
-                        return;
                     }
                 }
             }).start();

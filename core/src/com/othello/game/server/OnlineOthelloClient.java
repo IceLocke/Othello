@@ -12,10 +12,7 @@ import com.othello.game.utils.Step;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.Scanner;
-
-import static com.othello.game.utils.OthelloConstants.DiscType.WHITE;
 
 public class OnlineOthelloClient {
     private int port;
@@ -75,7 +72,6 @@ public class OnlineOthelloClient {
                         lastReceived = new Position(x, y);
                         isReceiving = false;
                         isReceived = true;
-                        return;
                     }
 
                     if (string.contains("#Name#")) {
@@ -83,7 +79,6 @@ public class OnlineOthelloClient {
                         remoteName = string.split("#Name#")[1];
                         isReceiving = false;
                         isReceived = true;
-                        return;
                     }
 
                     if (string.contains("#Round#")) {
@@ -91,14 +86,12 @@ public class OnlineOthelloClient {
                         maximumRound = Integer.parseInt(string.split("#Round#")[1]);
                         isReceiving = false;
                         isReceived = true;
-                        return;
                     }
 
                     if (string.contains("Disconnect")) {
                         Othello.remotePlayerDisconnected = true;
                         isReceiving = false;
                         isReceived = true;
-                        return;
                     }
                 }
             }).start();
