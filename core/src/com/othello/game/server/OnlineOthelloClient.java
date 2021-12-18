@@ -5,12 +5,14 @@ import com.badlogic.gdx.Net;
 import com.badlogic.gdx.net.Socket;
 import com.badlogic.gdx.net.SocketHints;
 import com.badlogic.gdx.utils.GdxRuntimeException;
+import com.othello.game.Othello;
 import com.othello.game.utils.Position;
 import com.othello.game.utils.Step;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.Scanner;
 
 import static com.othello.game.utils.OthelloConstants.DiscType.WHITE;
@@ -44,6 +46,9 @@ public class OnlineOthelloClient {
     private boolean isReceiving = false;
     private boolean isReceived = false;
     private Position lastReceived;
+    private String remoteName = null;
+    private int maximumRound = 0;
+
     public Position receive() {
         if(isReceiving) return null;
         else if(isReceived) {
@@ -60,13 +65,41 @@ public class OnlineOthelloClient {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    Scanner scanner = new Scanner(string);
-                    int x = scanner.nextInt();
-                    int y = scanner.nextInt();
-                    System.out.printf("%d %d\n", x, y);
-                    lastReceived = new Position(x, y);
-                    isReceiving = false;
-                    isReceived = true;
+
+                    if (string.contains("#Step#")) {
+                        System.out.println("receive step");
+                        Scanner scanner = new Scanner(string.split("#Step#")[1]);
+                        int x = scanner.nextInt();
+                        int y = scanner.nextInt();
+                        System.out.printf("%d %d\n", x, y);
+                        lastReceived = new Position(x, y);
+                        isReceiving = false;
+                        isReceived = true;
+                        return;
+                    }
+
+                    if (string.contains("#Name#")) {
+                        System.out.println("receive name");
+                        remoteName = string.split("#Name#")[1];
+                        isReceiving = false;
+                        isReceived = true;
+                        return;
+                    }
+
+                    if (string.contains("#Round#")) {
+                        System.out.println("receive name");
+                        maximumRound = Integer.parseInt(string.split("#Round#")[1]);
+                        isReceiving = false;
+                        isReceived = true;
+                        return;
+                    }
+
+                    if (string.contains("Disconnect")) {
+                        Othello.remotePlayerDisconnected = true;
+                        isReceiving = false;
+                        isReceived = true;
+                        return;
+                    }
                 }
             }).start();
         }
@@ -75,7 +108,31 @@ public class OnlineOthelloClient {
 
     public void update(Step step) {
         try {
-            dataOutputStream.writeUTF(String.format("%d %d\n", step.getPosition().getX(), step.getPosition().getY()));
+            dataOutputStream.writeUTF(String.format("#Step#%d %d\n", step.getPosition().getX(), step.getPosition().getY()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendPlayerName(String name) {
+        try {
+            dataOutputStream.writeUTF(String.format("#Name#%s", name));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public int getMaximumRound() {
+        return maximumRound;
+    }
+
+    public String getRemoteName() {
+        return remoteName;
+    }
+
+    public void disconnect() {
+        try {
+            dataOutputStream.writeUTF("Disconnect");
         } catch (IOException e) {
             e.printStackTrace();
         }

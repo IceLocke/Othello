@@ -21,6 +21,8 @@ import com.badlogic.gdx.graphics.g3d.loader.ObjLoader;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Event;
+import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
@@ -100,6 +102,7 @@ public class Othello extends ApplicationAdapter {
 	public static Position boardClickPosition;
 	public static OthelloGame game;
 	public static final float FPS = 1f / 60;
+	public static boolean remotePlayerDisconnected = false;
 
 	// BGM 列表
 	protected String[] bgmList = {"Veibae_BGM", ""};
@@ -135,6 +138,8 @@ public class Othello extends ApplicationAdapter {
 	protected OnlineOthelloServer server;
 	protected OnlineOthelloClient client;
 	protected Label serverIP;
+	public String onlinePlayerName = null;
+	public String onlineRemotePlayerName = null;
 
 	public boolean animationIsOver() {
 		boolean over = true;
@@ -144,6 +149,12 @@ public class Othello extends ApplicationAdapter {
 	}
 
 	public void backToHome() {
+		if (game != null) {
+			if (game.getMode() == OthelloConstants.GameMode.ONLINE_LOCAL_PLAYER)
+				server.disconnect();
+			if (game.getMode() == OthelloConstants.GameMode.ONLINE_REMOTE_PLAYER)
+				client.disconnect();
+		}
 		isMuted = false;
 		bgm.stop(bgmId);
 		clearBoard();
@@ -212,9 +223,62 @@ public class Othello extends ApplicationAdapter {
 
 	private boolean dialog0Existed = false;
 	private boolean dialog1Existed = false;
-	private Dialog dialog0, dialog1;
+	private boolean dialog2Existed = false;
+	private boolean roundUpdated = false;
+	private Dialog dialog0, dialog1, dialog2;
+
 	// 渲染游戏界面
 	public void renderGame(){
+		// 更新玩家 ID
+		if (onlineRemotePlayerName == null) {
+			boolean nameUpdated = false;
+			if (game.getMode() == OthelloConstants.GameMode.ONLINE_LOCAL_PLAYER) {
+				onlineRemotePlayerName = server.getRemoteName();
+				server.sendPlayerName(onlinePlayerName);
+				server.receive();
+				game.getPlayer2().setPlayerName(onlineRemotePlayerName);
+				nameUpdated = true;
+			}
+			if (game.getMode() == OthelloConstants.GameMode.ONLINE_REMOTE_PLAYER) {
+				onlineRemotePlayerName = client.getRemoteName();
+				client.sendPlayerName(onlinePlayerName);
+				game.getPlayer1().setPlayerName(onlineRemotePlayerName);
+				nameUpdated = true;
+			}
+			if (nameUpdated)
+				initHUD();
+		}
+
+		// 更新游戏局数
+		if (game.getMode() == OthelloConstants.GameMode.ONLINE_REMOTE_PLAYER && !roundUpdated) {
+			if (client.getMaximumRound() != 0) {
+				roundUpdated = true;
+				game.setMaximumPlay(client.getMaximumRound());
+				initHUD();
+			}
+		}
+
+		// 对面润了提示
+		if (remotePlayerDisconnected && !dialog2Existed) {
+			dialog2Existed = true;
+			dialog2 = new Dialog("\nRemote Disconnected", skin);
+			dialog2.setMovable(false);
+			dialog2.setSize(200, 140);
+			dialog2.text(new Label("Remote Disconnected", skin)).pad(10, 10, 10, 10);
+			dialog2.button("Back to Home").pad(10, 10, 10, 10);
+			dialog2.getButtonTable().addListener(new ChangeListener() {
+				@Override
+				public void changed(ChangeEvent event, Actor actor) {
+					clearBoard();
+					backToHome();
+					dialog2Existed = false;
+					dialog2.remove();
+				}
+			});
+			dialog2.setPosition(540, 360);
+			gameStage.addActor(dialog2);
+		}
+
 		// 游戏结束动画
 		if (game.getNowPlay().isOver()) {
 			// round over
@@ -356,17 +420,17 @@ public class Othello extends ApplicationAdapter {
 			}
 
 			Label titleLabel = null;
-			Label blankLabel = new Label("", labelStyle);
+			final Label blankLabel = new Label("", labelStyle);
 			Label player1Label = new Label("Player 1", labelStyle);
 			Label player2Label = new Label("Player 2", labelStyle);
 			Label difficultyLabel = new Label("Difficulty", labelStyle);
 			final Label gameRoundLabel = new Label("Rounds", labelStyle);
 			final Label bgmLabel = new Label("BGM", labelStyle);
 			TextButton startButton = new TextButton("Start", skin);
-			TextButton backButton = new TextButton("Back", skin);
+			final TextButton backButton = new TextButton("Back", skin);
 			TextButton loadButton = new TextButton("Load", skin);
-			final TextField player1TextField = new TextField("player1", skin);
-			final TextField player2TextField = new TextField("player2", skin);
+			final TextField player1TextField = new TextField("Player1", skin);
+			final TextField player2TextField = new TextField("Player2", skin);
 			final SelectBox<String> difficultySelectBox = new SelectBox(skin);
 			final SelectBox<String> gameRoundSelectBox = new SelectBox(skin);
 			final SelectBox<String> bgmSelectBox = new SelectBox(skin);
@@ -376,8 +440,9 @@ public class Othello extends ApplicationAdapter {
 			bgmSelectBox.setItems();
 
 			// 在线部分控件 by kl
-			TextButton createServer = new TextButton("create", skin);
-			TextButton joinServer = new TextButton("join", skin);
+			final Label serverIPLabel = new Label("IP", labelStyle);
+			TextButton createServerButton = new TextButton("Create", skin);
+			TextButton joinServerButton = new TextButton("Join", skin);
 
 			switch (menuButtonType) {
 				case OthelloConstants.MenuButtonType.EXIT:
@@ -397,7 +462,8 @@ public class Othello extends ApplicationAdapter {
 					break;
 				case OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER:
 					interfaceType = OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU;
-					titleLabel = new Label("Multiple Player", titleLabelStyle);
+					titleLabel = new Label("Online Game", titleLabelStyle);
+					player1Label.setText("Name");
 					break;
 				default: break;
 			}
@@ -432,7 +498,6 @@ public class Othello extends ApplicationAdapter {
 					interfaceType = OthelloConstants.InterfaceType.GAME;
 					bgmId = bgm.loop(0.01f);
 					initHUD();
-					Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
 				}
 				}
 			});
@@ -466,7 +531,6 @@ public class Othello extends ApplicationAdapter {
 								bgmId = bgm.loop(0.01f);
 								interfaceType = OthelloConstants.InterfaceType.GAME;
 								initHUD();
-								Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
 						}
 					});
 					break;
@@ -484,34 +548,46 @@ public class Othello extends ApplicationAdapter {
 							interfaceType = OthelloConstants.InterfaceType.GAME;
 							bgmId = bgm.loop(0.01f);
 							initHUD();
-							Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
 						}
 					});
 					break;
 				case OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU:
-					createServer.addListener(new ChangeListener() {
+					createServerButton.addListener(new ChangeListener() {
 						@Override
 						public void changed(ChangeEvent event, Actor actor) {
 							server = new OnlineOthelloServer();
-							Player p1 = new LocalPlayer(10, "Local(s)",
+							Player p1 = new LocalPlayer(10, player1TextField.getText(),
 									"data/skin/profile_photo.jpg", BLACK);
 							Player p2 = new OnlinePlayer(20, "Remote",
 									"data/skin/profile_photo.jpg", WHITE);
 							game = new OthelloGame(p1, p2, new LocalOthelloCore());
 							game.setMode(OthelloConstants.GameMode.ONLINE_LOCAL_PLAYER);
-							game.setMaximumPlay(3);
-							serverIP = new Label("Server IP: " + server.getIP() + ":" + server.getPort() + "(Automatically in your clipboard.)", skin);
-							Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(server.getIP() + ":" + server.getPort()), null);
+							game.setMaximumPlay(Integer.parseInt(gameRoundSelectBox.getSelected()));
+							serverIP = new Label("Server IP: " + server.getIP() + ":" + server.getPort() +
+									"(Automatically in your clipboard.)", skin);
+							Toolkit.getDefaultToolkit().getSystemClipboard().
+									setContents(
+											new StringSelection(server.getIP() + ":" + server.getPort()), null
+									);
+							homeTable.row();
+							homeTable.add(blankLabel).width(100).height(80);
+							homeTable.add(new Label("Waiting...", skin)).width(100);
+							homeTable.add(blankLabel).width(100);
+							homeTable.row();
+							homeTable.add(blankLabel).width(0);
+							homeTable.add(new Label("(IP was automatically clipped in your clipboard)", skin)).align(Align.center);
+							onlinePlayerName = player1TextField.getText();
 							interfaceType = OthelloConstants.InterfaceType.ONLINE_LOCAL_PLAYER_WAITING;
 						}
 					});
-					joinServer.addListener(new ChangeListener() {
+					final Label finalTitleLabel = titleLabel;
+					joinServerButton.addListener(new ChangeListener() {
 						@Override
 						public void changed(ChangeEvent event, Actor actor) {
 							System.out.println("Clicked join button.");
 							Player p1 = new OnlinePlayer(40, "Remote(s)",
 									"data/skin/profile_photo.jpg", BLACK);
-							Player p2 = new LocalPlayer(30, "Local",
+							Player p2 = new LocalPlayer(30, player1TextField.getText(),
 									"data/skin/profile_photo.jpg", WHITE);
 							game = new OthelloGame(p1, p2, new LocalOthelloCore());
 							game.setMode(OthelloConstants.GameMode.ONLINE_REMOTE_PLAYER);
@@ -525,8 +601,18 @@ public class Othello extends ApplicationAdapter {
 							homeStage.addActor(homeTable);
 							homeTable.setBackground(skin.newDrawable("white", new Color(0x54BCB5ff)));
 							// for IceLocke 搞好看点+1
-							homeTable.add(inputServerIP);
-							homeTable.add(connectToServerButton);
+							finalTitleLabel.setText("Join");
+							homeTable.add(blankLabel).width(100).height(80);
+							homeTable.add(finalTitleLabel);
+							homeTable.add(blankLabel).width(100).height(80);
+							homeTable.row();
+							homeTable.add(serverIPLabel).width(100).height(80);
+							homeTable.add(blankLabel).width(120).height(80);
+							homeTable.add(inputServerIP).width(170).align(Align.right);
+							homeTable.row();
+							homeTable.add(connectToServerButton).width(100);
+							homeTable.add(blankLabel).width(100).height(80);
+							homeTable.add(backButton).width(100);
 						}
 					});
 					connectToServerButton.addListener(new ChangeListener() {
@@ -534,10 +620,12 @@ public class Othello extends ApplicationAdapter {
 						public void changed(ChangeEvent event, Actor actor) {
 							System.out.println("Clicked connect button.");
 							// for IceLocke: 这里改成从 inputServerIP 读捏
-							String IP = "127.0.0.1";
-							int port = 8080;
+							String[] splitIP = inputServerIP.getText().split(":");
+							String IP = splitIP[0];
+							int port = Integer.parseInt(splitIP[1]);
 							client = new OnlineOthelloClient(IP, port);
 							interfaceType = OthelloConstants.InterfaceType.ONLINE_REMOTE_PLAYER_WAITING;
+							onlinePlayerName = player1TextField.getText();
 						}
 					});
 					/*
@@ -577,26 +665,37 @@ public class Othello extends ApplicationAdapter {
 				homeTable.add(blankLabel).width(100);
 				homeTable.add(gameRoundSelectBox);
 				homeTable.row();
-				homeTable.add(difficultyLabel).width(100).height(80);
-				homeTable.add(blankLabel).width(100);
-				homeTable.add(difficultySelectBox);
-				homeTable.row();
+				if (menuButtonType == OthelloConstants.GameMode.LOCAL_SINGLE_PLAYER) {
+					homeTable.add(difficultyLabel).width(100).height(80);
+					homeTable.add(blankLabel).width(100);
+					homeTable.add(difficultySelectBox);
+					homeTable.row();
+				}
 				homeTable.add(startButton).width(100);
 				homeTable.add(loadButton).width(100);
 				homeTable.add(backButton).width(100);
 			}
 			// 在线游戏菜单的绘制
 			else if(interfaceType == OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU) {
-				// for IceLocke 搞好看点
-				homeTable.add(createServer).width(100).height(80);
-				homeTable.add(joinServer).width(100).height(80);
+				player1TextField.setText("Player");
+				homeTable.add(blankLabel).width(120);
+				homeTable.add(titleLabel).height(100);
+				homeTable.add(blankLabel).width(100);
+				homeTable.row();
+				homeTable.add(player1Label).height(80).width(100);
+				homeTable.add(blankLabel).width(100);
+				homeTable.add(player1TextField);
+				homeTable.row();
+				homeTable.add(gameRoundLabel).width(100).height(80);
+				homeTable.add(blankLabel).width(100);
+				homeTable.add(gameRoundSelectBox);
+				homeTable.row();
+				homeTable.add(createServerButton).width(100).height(30);
+				homeTable.add(joinServerButton).width(100).height(30);
+				homeTable.add(backButton).width(100).height(30);
 			}
 		}
 		if(interfaceType == OthelloConstants.InterfaceType.ONLINE_LOCAL_PLAYER_WAITING) {
-			homeTable = new Table();
-			homeTable.setBackground(skin.newDrawable("white", new Color(0x54BCB5ff)));
-			homeTable.add(serverIP);
-			System.out.println("Still Waiting...");
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
@@ -604,22 +703,24 @@ public class Othello extends ApplicationAdapter {
 					server.connectWithClient();
 				}
 			}).start();
-			System.out.println("rua");
 			if(server.isConnected()) {
+				remotePlayerDisconnected = false;
 				System.out.println("Connected successfully.");
 				interfaceType = OthelloConstants.InterfaceType.GAME;
 				bgmId = bgm.loop(0.01f);
 				initHUD();
-				Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
+				server.sendPlayerName(onlinePlayerName);
+				server.sendMaximumRound(game.getMaximumPlay());
 			}
 		}
 		if(interfaceType == OthelloConstants.InterfaceType.ONLINE_REMOTE_PLAYER_WAITING) {
 			if(client.isConnected()) {
+				remotePlayerDisconnected = false;
 				System.out.println("Connected successfully.");
+				client.sendPlayerName(onlinePlayerName);
 				interfaceType = OthelloConstants.InterfaceType.GAME;
 				bgmId = bgm.loop(0.01f);
 				initHUD();
-				Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
 			} else {
 				new Thread(new Runnable() {
 					@Override
@@ -742,11 +843,12 @@ public class Othello extends ApplicationAdapter {
 		gameStage.addActor(gameRoundLabel);
 		gameStage.addActor(playerTable);
 		gameStage.addActor(gameButtonTable);
+		Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
 	}
 
 	// 对战逻辑
 	public void gameLogic() {
-		if(game.isOver()) return;
+		if (game.isOver()) return;
 
 		// 优先把动画处理完
 		if (!animationIsOver()) {
