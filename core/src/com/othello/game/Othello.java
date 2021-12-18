@@ -144,7 +144,7 @@ public class Othello extends ApplicationAdapter {
 	}
 
 	public void backToHome() {
-		if (game != null) {
+		if (game != null && server != null) {
 			if (game.getMode() == OthelloConstants.GameMode.ONLINE_LOCAL_PLAYER)
 				server.disconnect();
 			if (game.getMode() == OthelloConstants.GameMode.ONLINE_REMOTE_PLAYER)
@@ -416,7 +416,7 @@ public class Othello extends ApplicationAdapter {
 
 			Label titleLabel = null;
 			final Label blankLabel = new Label("", labelStyle);
-			Label player1Label = new Label("Player 1", labelStyle);
+			final Label player1Label = new Label("Player 1", labelStyle);
 			Label player2Label = new Label("Player 2", labelStyle);
 			Label difficultyLabel = new Label("Difficulty", labelStyle);
 			final Label gameRoundLabel = new Label("Rounds", labelStyle);
@@ -571,7 +571,9 @@ public class Othello extends ApplicationAdapter {
 							homeTable.add(new Label("Waiting...", skin)).width(100);
 							homeTable.add(blankLabel).width(100);
 							homeTable.row();
-							homeTable.add(blankLabel).width(0);
+							homeTable.add(blankLabel).width(100);
+							homeTable.add(new Label("Your IP: " + server.getIP() + ":" + server.getPort(), skin)).width(100);
+							homeTable.add(blankLabel).width(100);
 							onlinePlayerName = player1TextField.getText();
 							interfaceType = OthelloConstants.InterfaceType.ONLINE_LOCAL_PLAYER_WAITING;
 						}
@@ -602,9 +604,14 @@ public class Othello extends ApplicationAdapter {
 							homeTable.add(finalTitleLabel);
 							homeTable.add(blankLabel).width(100).height(80);
 							homeTable.row();
+							player1Label.setText("Name");
+							homeTable.add(player1Label).height(80).width(100).align(Align.left);
+							homeTable.add(blankLabel).width(100);
+							homeTable.add(player1TextField);
+							homeTable.row();
 							homeTable.add(serverIPLabel).width(100).height(80);
 							homeTable.add(blankLabel).width(120).height(80);
-							homeTable.add(inputServerIP).width(170).align(Align.right);
+							homeTable.add(inputServerIP).width(170).align(Align.left);
 							homeTable.row();
 							homeTable.add(connectToServerButton).width(100);
 							homeTable.add(blankLabel).width(100).height(80);
