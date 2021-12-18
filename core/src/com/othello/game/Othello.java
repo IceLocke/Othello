@@ -21,8 +21,6 @@ import com.badlogic.gdx.graphics.g3d.loader.ObjLoader;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Event;
-import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
@@ -103,9 +101,6 @@ public class Othello extends ApplicationAdapter {
 	public static OthelloGame game;
 	public static final float FPS = 1f / 60;
 	public static boolean remotePlayerDisconnected = false;
-
-	// BGM 列表
-	protected String[] bgmList = {"Veibae_BGM", ""};
 
 	// 游戏UI相关的变量
 	protected SpriteBatch batch;
@@ -425,15 +420,17 @@ public class Othello extends ApplicationAdapter {
 			Label player2Label = new Label("Player 2", labelStyle);
 			Label difficultyLabel = new Label("Difficulty", labelStyle);
 			final Label gameRoundLabel = new Label("Rounds", labelStyle);
-			final Label bgmLabel = new Label("BGM", labelStyle);
 			TextButton startButton = new TextButton("Start", skin);
 			final TextButton backButton = new TextButton("Back", skin);
 			TextButton loadButton = new TextButton("Load", skin);
 			final TextField player1TextField = new TextField("Player1", skin);
 			final TextField player2TextField = new TextField("Player2", skin);
-			final SelectBox<String> difficultySelectBox = new SelectBox(skin);
-			final SelectBox<String> gameRoundSelectBox = new SelectBox(skin);
-			final SelectBox<String> bgmSelectBox = new SelectBox(skin);
+			final SelectBox<String> difficultySelectBox;
+			difficultySelectBox = new SelectBox(skin);
+			final SelectBox<String> gameRoundSelectBox;
+			gameRoundSelectBox = new SelectBox(skin);
+			final SelectBox<String> bgmSelectBox;
+			bgmSelectBox = new SelectBox(skin);
 
 			difficultySelectBox.setItems("Easy", "Normal", "Hard");
 			gameRoundSelectBox.setItems("1", "3", "5");
@@ -599,6 +596,7 @@ public class Othello extends ApplicationAdapter {
 							homeTable.setSize(1280, 720);
 							homeStage.addActor(homeTable);
 							homeTable.setBackground(skin.newDrawable("white", new Color(0x54BCB5ff)));
+							assert finalTitleLabel != null;
 							finalTitleLabel.setText("Join");
 							homeTable.add(blankLabel).width(100).height(80);
 							homeTable.add(finalTitleLabel);
@@ -728,13 +726,14 @@ public class Othello extends ApplicationAdapter {
 		Image p1ProfilePhoto = new Image(defaultBlackPlayerProfilePhoto);
 		Image p2ProfilePhoto = new Image(defaultWhitePlayerProfilePhoto);
 
+		gameButtonTable.align(Align.left);
 		gameButtonTable.add(homeButton);
 		if (game.getMode() < OthelloConstants.GameMode.ONLINE_LOCAL_PLAYER) {
 			gameButtonTable.add(saveButton).padLeft(10);
 			gameButtonTable.add(backButton).padLeft(10);
 		}
 		gameButtonTable.add(muteButton).padLeft(10);
-		gameButtonTable.setPosition(120, 50);
+		gameButtonTable.setPosition(20, 50);
 
 		homeButton.addListener(new ChangeListener() {
 			@Override
@@ -1013,11 +1012,10 @@ public class Othello extends ApplicationAdapter {
 
 	@Override
 	public void render () {
-		switch (interfaceType) {
-			case OthelloConstants.InterfaceType.GAME:
-				renderGame(); break;
-			default:
-				renderHome(); break;
+		if (interfaceType == OthelloConstants.InterfaceType.GAME) {
+			renderGame();
+		} else {
+			renderHome();
 		}
 	}
 	
