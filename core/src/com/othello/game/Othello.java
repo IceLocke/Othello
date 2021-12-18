@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
@@ -22,7 +23,12 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.UBJsonReader;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.othello.game.core.LocalOthelloCore;
@@ -37,6 +43,8 @@ import com.othello.game.server.OnlineOthelloClient;
 import com.othello.game.server.OnlineOthelloServer;
 import com.othello.game.utils.*;
 
+import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.util.ArrayList;
 
 import static com.othello.game.utils.OthelloConstants.AIDifficulty.*;
@@ -126,6 +134,7 @@ public class Othello extends ApplicationAdapter {
 	// 在线部分by kl
 	protected OnlineOthelloServer server;
 	protected OnlineOthelloClient client;
+	protected Label serverIP;
 
 	public boolean animationIsOver() {
 		boolean over = true;
@@ -245,11 +254,11 @@ public class Othello extends ApplicationAdapter {
 					dialog1.getButtonTable().addListener(new ChangeListener() {
 						@Override
 						public void changed(ChangeEvent event, Actor actor) {
-							dialog1Existed = false;
-							gameStage.dispose();
-							clearBoard();
-							dialog1.remove();
-							backToHome();
+						dialog1Existed = false;
+						gameStage.dispose();
+						clearBoard();
+						dialog1.remove();
+						backToHome();
 						}
 					});
 				}
@@ -333,6 +342,10 @@ public class Othello extends ApplicationAdapter {
 
 	// 主菜单逻辑
 	public void homeLogic() {
+
+		final TextField inputServerIP = new TextField("", skin);
+		final TextButton connectToServerButton = new TextButton("Connect", skin);
+
 		if (menuButtonPressed) {
 			if (menuButtonType != OthelloConstants.MenuButtonType.EXIT) {
 				homeStage = new Stage(new ScreenViewport());
@@ -349,13 +362,11 @@ public class Othello extends ApplicationAdapter {
 			Label difficultyLabel = new Label("Difficulty", labelStyle);
 			final Label gameRoundLabel = new Label("Rounds", labelStyle);
 			final Label bgmLabel = new Label("BGM", labelStyle);
-			Label serverAddressLabel = null;
 			TextButton startButton = new TextButton("Start", skin);
-			final TextButton backButton = new TextButton("Back", skin);
+			TextButton backButton = new TextButton("Back", skin);
 			TextButton loadButton = new TextButton("Load", skin);
 			final TextField player1TextField = new TextField("player1", skin);
 			final TextField player2TextField = new TextField("player2", skin);
-			TextField serverAddressTextField = null;
 			final SelectBox<String> difficultySelectBox = new SelectBox(skin);
 			final SelectBox<String> gameRoundSelectBox = new SelectBox(skin);
 			final SelectBox<String> bgmSelectBox = new SelectBox(skin);
@@ -363,6 +374,10 @@ public class Othello extends ApplicationAdapter {
 			difficultySelectBox.setItems("Easy", "Normal", "Hard");
 			gameRoundSelectBox.setItems("1", "3", "5");
 			bgmSelectBox.setItems();
+
+			// 在线部分控件 by kl
+			TextButton createServer = new TextButton("create", skin);
+			TextButton joinServer = new TextButton("join", skin);
 
 			switch (menuButtonType) {
 				case OthelloConstants.MenuButtonType.EXIT:
@@ -383,11 +398,10 @@ public class Othello extends ApplicationAdapter {
 				case OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER:
 					interfaceType = OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU;
 					titleLabel = new Label("Multiple Player", titleLabelStyle);
-					serverAddressLabel = new Label("Server Address", labelStyle);
-					serverAddressTextField = new TextField("0.0.0.0", textFieldStyle);
 					break;
 				default: break;
 			}
+
 			menuButtonPressed = false;
 
 			backButton.addListener(new ChangeListener() {
@@ -399,26 +413,27 @@ public class Othello extends ApplicationAdapter {
 			loadButton.addListener(new ChangeListener() {
 				@Override
 				public void changed(ChangeEvent event, Actor actor) {
-					game = OthelloGame.loadGame(menuButtonType);
-					if(game == null) {
-						final Dialog dialog = new Dialog("Loading failed", skin);
-						dialog.setMovable(false);
-						dialog.setSize(200, 140);
-						dialog.text(new Label("No corresponding save data or data was broken.", skin)).pad(10, 10, 10, 10);
-						dialog.button("OK").pad(10, 10, 10, 10);
-						dialog.getButtonTable().addListener(new ChangeListener() {
-							@Override
-							public void changed(ChangeEvent event, Actor actor) {
-								dialog.remove();
-							}
-						});
-						dialog.setPosition(540, 360);
-					} else {
-						interfaceType = OthelloConstants.InterfaceType.GAME;
-						bgmId = bgm.loop(0.01f);
-						initHUD();
-						Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
-					}
+				game = OthelloGame.loadGame(menuButtonType);
+				if(game == null) {
+					final Dialog dialog = new Dialog("Loading failed", skin);
+					dialog.setMovable(false);
+					dialog.setSize(200, 140);
+					dialog.text(new Label("No corresponding save data or data was broken.", skin)).pad(10, 10, 10, 10);
+					dialog.button("OK").pad(10, 10, 10, 10);
+					dialog.getButtonTable().addListener(new ChangeListener() {
+						@Override
+						public void changed(ChangeEvent event, Actor actor) {
+							dialog.remove();
+						}
+					});
+					dialog.setPosition(540, 360);
+					homeStage.addActor(dialog);
+				} else {
+					interfaceType = OthelloConstants.InterfaceType.GAME;
+					bgmId = bgm.loop(0.01f);
+					initHUD();
+					Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
+				}
 				}
 			});
 
@@ -427,30 +442,31 @@ public class Othello extends ApplicationAdapter {
 					startButton.addListener(new ChangeListener() {
 						@Override
 						public void changed(ChangeEvent event, Actor actor) {
-							Player p1 = new LocalPlayer(1, player1TextField.getText(),
-									"data/skin/profile_photo.jpg", BLACK);
-							int difficultyNum;
-							switch (difficultySelectBox.getSelected()) {
-								case "Easy":
-									difficultyNum = EASY;
-									break;
-								case "Normal":
-									difficultyNum = NORMAL;
-									break;
-								case "Hard":
-									difficultyNum = HARD;
-									break;
-								default:
-									difficultyNum = 0; break;
-							}
-							Player p2 = new AIPlayer(difficultyNum, WHITE);
-							game = new OthelloGame(p1, p2, new LocalOthelloCore());
-							game.setMode(OthelloConstants.GameMode.LOCAL_SINGLE_PLAYER);
-							game.setMaximumPlay(Integer.parseInt(gameRoundSelectBox.getSelected()));
-							interfaceType = OthelloConstants.InterfaceType.GAME;
-							bgmId = bgm.loop(0.01f);
-							initHUD();
-							Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
+								Player p1 = new LocalPlayer(1, player1TextField.getText(),
+										"data/skin/profile_photo.jpg", BLACK);
+								int difficultyNum;
+								switch (difficultySelectBox.getSelected()) {
+									case "Easy":
+										difficultyNum = EASY;
+										break;
+									case "Normal":
+										difficultyNum = NORMAL;
+										break;
+									case "Hard":
+										difficultyNum = HARD;
+										break;
+									default:
+										difficultyNum = 0;
+										break;
+								}
+								Player p2 = new AIPlayer(difficultyNum, WHITE);
+								game = new OthelloGame(p1, p2, new LocalOthelloCore());
+								game.setMode(OthelloConstants.GameMode.LOCAL_SINGLE_PLAYER);
+								game.setMaximumPlay(Integer.parseInt(gameRoundSelectBox.getSelected()));
+								bgmId = bgm.loop(0.01f);
+								interfaceType = OthelloConstants.InterfaceType.GAME;
+								initHUD();
+								Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
 						}
 					});
 					break;
@@ -465,9 +481,6 @@ public class Othello extends ApplicationAdapter {
 							game = new OthelloGame(p1, p2, new LocalOthelloCore());
 							game.setMode(OthelloConstants.GameMode.LOCAL_MULTIPLE_PLAYER);
 							game.setMaximumPlay(Integer.parseInt(gameRoundSelectBox.getSelected()));
-							game.refresh();
-							p1.setCore(game.getNowPlay());
-							p2.setCore(game.getNowPlay());
 							interfaceType = OthelloConstants.InterfaceType.GAME;
 							bgmId = bgm.loop(0.01f);
 							initHUD();
@@ -476,23 +489,55 @@ public class Othello extends ApplicationAdapter {
 					});
 					break;
 				case OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU:
-					TextButton createServer = new TextButton("create", skin);
-					TextButton joinServer = new TextButton("join", skin);
 					createServer.addListener(new ChangeListener() {
 						@Override
 						public void changed(ChangeEvent event, Actor actor) {
 							server = new OnlineOthelloServer();
-							Player p1 = new LocalPlayer(1, "Local Player(server)",
+							Player p1 = new LocalPlayer(10, "Local(s)",
 									"data/skin/profile_photo.jpg", BLACK);
-							Player p2 = new OnlinePlayer(-2, "Remote Player",
+							Player p2 = new OnlinePlayer(20, "Remote",
 									"data/skin/profile_photo.jpg", WHITE);
 							game = new OthelloGame(p1, p2, new LocalOthelloCore());
 							game.setMode(OthelloConstants.GameMode.ONLINE_LOCAL_PLAYER);
 							game.setMaximumPlay(3);
-							game.refresh();
-							bgmId = bgm.loop(0.01f);
-							interfaceType = OthelloConstants.InterfaceType.GAME;
-							server.connectWithClient();
+							serverIP = new Label("Server IP: " + server.getIP() + ":" + server.getPort() + "(Automatically in your clipboard.)", skin);
+							Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(server.getIP() + ":" + server.getPort()), null);
+							interfaceType = OthelloConstants.InterfaceType.ONLINE_LOCAL_PLAYER_WAITING;
+						}
+					});
+					joinServer.addListener(new ChangeListener() {
+						@Override
+						public void changed(ChangeEvent event, Actor actor) {
+							System.out.println("Clicked join button.");
+							Player p1 = new OnlinePlayer(40, "Remote(s)",
+									"data/skin/profile_photo.jpg", BLACK);
+							Player p2 = new LocalPlayer(30, "Local",
+									"data/skin/profile_photo.jpg", WHITE);
+							game = new OthelloGame(p1, p2, new LocalOthelloCore());
+							game.setMode(OthelloConstants.GameMode.ONLINE_REMOTE_PLAYER);
+							game.setMaximumPlay(3);
+							interfaceType = OthelloConstants.InterfaceType.ONLINE_REMOTE_PLAYER_BEFORE_CONNECTING;
+
+							homeStage = new Stage(new ScreenViewport());
+							Gdx.input.setInputProcessor(homeStage);
+							homeTable = new Table();
+							homeTable.setSize(1280, 720);
+							homeStage.addActor(homeTable);
+							homeTable.setBackground(skin.newDrawable("white", new Color(0x54BCB5ff)));
+							// for IceLocke 搞好看点+1
+							homeTable.add(inputServerIP);
+							homeTable.add(connectToServerButton);
+						}
+					});
+					connectToServerButton.addListener(new ChangeListener() {
+						@Override
+						public void changed(ChangeEvent event, Actor actor) {
+							System.out.println("Clicked connect button.");
+							// for IceLocke: 这里改成从 inputServerIP 读捏
+							String IP = "10.16.178.76";
+							int port = 8080;
+							client = new OnlineOthelloClient(IP, port);
+							interfaceType = OthelloConstants.InterfaceType.ONLINE_REMOTE_PLAYER_WAITING;
 						}
 					});
 					/*
@@ -513,7 +558,7 @@ public class Othello extends ApplicationAdapter {
 					break;
 			}
 
-			// 本地游戏的绘制
+			// 本地游戏菜单的绘制
 			homeTable.setBackground(skin.newDrawable("white", new Color(0x54BCB5ff)));
 			if (menuButtonType != OthelloConstants.MenuButtonType.ONLINE_MULTIPLE_PLAYER) {
 				homeTable.add(blankLabel).width(120);
@@ -539,9 +584,36 @@ public class Othello extends ApplicationAdapter {
 				homeTable.add(startButton).width(100);
 				homeTable.add(loadButton).width(100);
 				homeTable.add(backButton).width(100);
-			} else { // 在线游戏的绘制
-
 			}
+			// 在线游戏菜单的绘制
+			else if(interfaceType == OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU) {
+				// for IceLocke 搞好看点
+				homeTable.add(createServer).width(100).height(80);
+				homeTable.add(joinServer).width(100).height(80);
+			}
+		}
+		if(interfaceType == OthelloConstants.InterfaceType.ONLINE_LOCAL_PLAYER_WAITING) {
+			homeTable = new Table();
+			homeTable.setBackground(skin.newDrawable("white", new Color(0x54BCB5ff)));
+			homeTable.add(serverIP);
+			System.out.println("Still Waiting...");
+			server.connectWithClient();
+			if(server.isConnected()) {
+				System.out.println("Connected successfully.");
+				interfaceType = OthelloConstants.InterfaceType.GAME;
+				bgmId = bgm.loop(0.01f);
+				initHUD();
+				Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
+			}
+		}
+		if(interfaceType == OthelloConstants.InterfaceType.ONLINE_REMOTE_PLAYER_WAITING) {
+			if(client.isConnected()) {
+				System.out.println("Connected successfully.");
+				interfaceType = OthelloConstants.InterfaceType.GAME;
+				bgmId = bgm.loop(0.01f);
+				initHUD();
+				Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
+			} else client.connectWithServer();
 		}
 	}
 
@@ -638,7 +710,8 @@ public class Othello extends ApplicationAdapter {
 		playerTable.row();
 		playerTable.add(player2WinCountLabel);
 
-		playerTable.setPosition(110, 530);
+		playerTable.setPosition(20, 530);
+		playerTable.align(Align.left);
 
 		gameRoundLabel = new Label(String.format("Round %d/%d", 1, game.getMaximumPlay()), titleLabelStyle);
 		gameRoundLabel.setPosition(1100, 640);
@@ -677,15 +750,22 @@ public class Othello extends ApplicationAdapter {
 					System.out.printf("%d ", game.getNowPlayBoard()[i][j]);
 				System.out.println();
 			}
-		} else if(game.getNowPlayer().getID() == -2) { // Online
-
+		} else if(game.getNowPlayer().getID() == 20) { // Online Client
+			Position position = server.receive();
+			if(position != null) game.getNowPlay().addStep(new Step(position, WHITE));
+		} else if(game.getNowPlayer().getID() == 40) { // Online Server
+			Position position = client.receive();
+			if(position != null) game.getNowPlay().addStep(new Step(position, BLACK));
 		} else if(boardClicked) {
 			System.out.printf("Othello: detected click, at position: %d %d\n", boardClickPosition.getX(), boardClickPosition.getY());
 			boardClicked = false;
 			System.out.printf("Othello: addStep(%d, %d, %d)\n", boardClickPosition.getX(), boardClickPosition.getY(), game.getNowPlay().getTurnColor());
-			game.getNowPlayer().addStep(
-					new Step(boardClickPosition, game.getNowPlay().getTurnColor())
-			);
+			Step thisStep = new Step(boardClickPosition, game.getNowPlay().getTurnColor());
+			if(game.getNowPlayer().getID() == 10)
+				server.update(thisStep);
+			if(game.getNowPlayer().getID() == 30)
+				client.update(thisStep);
+			game.getNowPlayer().addStep(thisStep);
 			if (!isMuted)
 				chessSound1.play(0.1f);
 			for (int i = 1; i <= 8; i++) {

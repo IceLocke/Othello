@@ -7,6 +7,9 @@ public interface OthelloConstants {
         int LOCAL_SINGLE_PLAYER_MENU = 3;
         int LOCAL_MULTIPLE_PLAYER_MENU = 4;
         int ONLINE_MULTIPLE_PLAYER_MENU = 5;
+        int ONLINE_LOCAL_PLAYER_WAITING = 6;
+        int ONLINE_REMOTE_PLAYER_WAITING = 7;
+        int ONLINE_REMOTE_PLAYER_BEFORE_CONNECTING = 8;
     }
 
     interface GameMode {
