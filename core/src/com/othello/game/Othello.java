@@ -225,6 +225,8 @@ public class Othello extends ApplicationAdapter {
 
 	// 渲染游戏界面
 	public void renderGame(){
+		System.out.println("Rendering");
+
 		// 更新玩家 ID
 		if (onlineRemotePlayerName == null) {
 			boolean nameUpdated = false;
@@ -597,7 +599,7 @@ public class Othello extends ApplicationAdapter {
 									"data/skin/profile_photo.jpg", WHITE);
 							game = new OthelloGame(p1, p2, new LocalOthelloCore());
 							game.setMode(OthelloConstants.GameMode.ONLINE_REMOTE_PLAYER);
-							game.setMaximumPlay(3);
+							game.setMaximumPlay(1);
 							interfaceType = OthelloConstants.InterfaceType.ONLINE_REMOTE_PLAYER_BEFORE_CONNECTING;
 
 							homeStage = new Stage(new ScreenViewport());
@@ -637,6 +639,7 @@ public class Othello extends ApplicationAdapter {
 							client = new OnlineOthelloClient(IP, port);
 							interfaceType = OthelloConstants.InterfaceType.ONLINE_REMOTE_PLAYER_WAITING;
 							onlinePlayerName = player1TextField.getText();
+							game.getPlayer2().setPlayerName(onlinePlayerName);
 						}
 					});
 					break;
