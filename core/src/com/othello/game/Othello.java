@@ -534,7 +534,7 @@ public class Othello extends ApplicationAdapter {
 						public void changed(ChangeEvent event, Actor actor) {
 							System.out.println("Clicked connect button.");
 							// for IceLocke: 这里改成从 inputServerIP 读捏
-							String IP = "10.16.178.76";
+							String IP = "127.0.0.1";
 							int port = 8080;
 							client = new OnlineOthelloClient(IP, port);
 							interfaceType = OthelloConstants.InterfaceType.ONLINE_REMOTE_PLAYER_WAITING;
@@ -597,7 +597,14 @@ public class Othello extends ApplicationAdapter {
 			homeTable.setBackground(skin.newDrawable("white", new Color(0x54BCB5ff)));
 			homeTable.add(serverIP);
 			System.out.println("Still Waiting...");
-			server.connectWithClient();
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					System.out.println("try to connect...");
+					server.connectWithClient();
+				}
+			}).start();
+			System.out.println("rua");
 			if(server.isConnected()) {
 				System.out.println("Connected successfully.");
 				interfaceType = OthelloConstants.InterfaceType.GAME;
@@ -613,7 +620,14 @@ public class Othello extends ApplicationAdapter {
 				bgmId = bgm.loop(0.01f);
 				initHUD();
 				Gdx.input.setInputProcessor(new InputMultiplexer(gameStage, new GameInputProcessor()));
-			} else client.connectWithServer();
+			} else {
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						client.connectWithServer();
+					}
+				}).start();
+			}
 		}
 	}
 
@@ -686,11 +700,20 @@ public class Othello extends ApplicationAdapter {
 		backButton.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
-				if(game.back()) {
-
-				} else {
-					// dialog: failed to back
-					// for IceLocke
+				if(!game.back()) {
+					final Dialog dialog = new Dialog("\nBack Failed", skin);
+					dialog.setMovable(false);
+					dialog.setSize(200, 140);
+					dialog.text(new Label("You have backed once.", skin)).pad(10, 10, 10, 10);
+					dialog.button("OK").pad(10, 10, 10, 10);
+					dialog.getButtonTable().addListener(new ChangeListener() {
+						@Override
+						public void changed(ChangeEvent event, Actor actor) {
+							dialog.remove();
+						}
+					});
+					dialog.setPosition(540, 360);
+					gameStage.addActor(dialog);
 				}
 			}
 		});
@@ -736,7 +759,7 @@ public class Othello extends ApplicationAdapter {
 			if (aiIsThinking)
 				return;
 			aiIsThinking = true;
-			Gdx.app.postRunnable(new Runnable() {
+			new Thread(new Runnable() {
 				@Override
 				public void run() {
 					game.getNowPlayer().addStep();
@@ -744,7 +767,7 @@ public class Othello extends ApplicationAdapter {
 						chessSound1.play(0.1f);
 					aiIsThinking = false;
 				}
-			});
+			}).start();
 			for (int i = 1; i <= 8; i++) {
 				for (int j = 1; j <= 8; j++)
 					System.out.printf("%d ", game.getNowPlayBoard()[i][j]);

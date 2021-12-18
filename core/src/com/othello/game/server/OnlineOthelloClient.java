@@ -49,25 +49,27 @@ public class OnlineOthelloClient {
         else if(isReceived) {
             isReceived = false;
             return lastReceived;
-        } else Gdx.app.postRunnable(new Runnable() {
-            @Override
-            public void run() {
-                isReceiving = true;
-                String string = "";
-                try {
-                    string = dataInputStream.readUTF();
-                } catch (IOException e) {
-                    e.printStackTrace();
+        } else {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    isReceiving = true;
+                    String string = "";
+                    try {
+                        string = dataInputStream.readUTF();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    Scanner scanner = new Scanner(string);
+                    int x = scanner.nextInt();
+                    int y = scanner.nextInt();
+                    System.out.printf("%d %d\n", x, y);
+                    lastReceived = new Position(x, y);
+                    isReceiving = false;
+                    isReceived = true;
                 }
-                Scanner scanner = new Scanner(string);
-                int x = scanner.nextInt();
-                int y = scanner.nextInt();
-                System.out.printf("%d %d\n", x, y);
-                lastReceived = new Position(x, y);
-                isReceiving = false;
-                isReceived = true;
-            }
-        });
+            }).start();
+        }
         return null;
     }
 
