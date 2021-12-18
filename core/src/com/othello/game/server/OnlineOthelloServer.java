@@ -28,7 +28,7 @@ public class OnlineOthelloServer {
     public OnlineOthelloServer() {
         try {
             IP = InetAddress.getLocalHost().getHostAddress();
-        } catch(UnknownHostException u) {
+        } catch (UnknownHostException u) {
             System.out.println("Failed to get Local IP.");
         }
 
@@ -36,7 +36,12 @@ public class OnlineOthelloServer {
 
         System.out.println("IP = " + IP);
         System.out.println("port = " + port);
-        server = Gdx.net.newServerSocket(Net.Protocol.TCP, port, new ServerSocketHints());
+        try {
+            server = Gdx.net.newServerSocket(Net.Protocol.TCP, port, new ServerSocketHints());
+        } catch (Exception e) {
+            port = (int)(Math.random() * 9999 + 10000);
+            server = Gdx.net.newServerSocket(Net.Protocol.TCP, port, new ServerSocketHints());
+        }
     }
 
     private boolean connecting = false;

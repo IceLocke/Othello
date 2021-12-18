@@ -261,11 +261,11 @@ public class Othello extends ApplicationAdapter {
 		// 对面润了提示
 		if (remotePlayerDisconnected && !dialog2Existed) {
 			dialog2Existed = true;
-			dialog2 = new Dialog("\nRemote Disconnected", skin);
+			dialog2 = new Dialog("\nDisconnected", skin);
 			dialog2.setMovable(false);
 			dialog2.setSize(200, 140);
 			dialog2.text(new Label("Remote Disconnected", skin)).pad(10, 10, 10, 10);
-			dialog2.button("Back to Home").pad(10, 10, 10, 10);
+			dialog2.button("Back").pad(10, 10, 10, 10);
 			dialog2.getButtonTable().addListener(new ChangeListener() {
 				@Override
 				public void changed(ChangeEvent event, Actor actor) {
@@ -575,7 +575,6 @@ public class Othello extends ApplicationAdapter {
 							homeTable.add(blankLabel).width(100);
 							homeTable.row();
 							homeTable.add(blankLabel).width(0);
-							homeTable.add(new Label("(IP was automatically clipped in your clipboard)", skin)).align(Align.center);
 							onlinePlayerName = player1TextField.getText();
 							interfaceType = OthelloConstants.InterfaceType.ONLINE_LOCAL_PLAYER_WAITING;
 						}
@@ -600,7 +599,6 @@ public class Othello extends ApplicationAdapter {
 							homeTable.setSize(1280, 720);
 							homeStage.addActor(homeTable);
 							homeTable.setBackground(skin.newDrawable("white", new Color(0x54BCB5ff)));
-							// for IceLocke 搞好看点+1
 							finalTitleLabel.setText("Join");
 							homeTable.add(blankLabel).width(100).height(80);
 							homeTable.add(finalTitleLabel);
@@ -628,19 +626,6 @@ public class Othello extends ApplicationAdapter {
 							onlinePlayerName = player1TextField.getText();
 						}
 					});
-					/*
-					* for IceLocke
-					*
-					* 选择：创建服务器 or 链接进服务器
-					*
-					* if 创建服务器
-					* 		创建服务器
-					* 		本机玩家为本地玩家（黑棋）
-					* 		等带对手链接
-					* else
-					* 		输入ip+端口号
-					* 		尝试链接
-					* */
 					break;
 				default:
 					break;
@@ -743,8 +728,8 @@ public class Othello extends ApplicationAdapter {
 		Image p1ProfilePhoto = new Image(defaultBlackPlayerProfilePhoto);
 		Image p2ProfilePhoto = new Image(defaultWhitePlayerProfilePhoto);
 
-		if (interfaceType != OthelloConstants.InterfaceType.ONLINE_MULTIPLE_PLAYER_MENU) {
-			gameButtonTable.add(homeButton);
+		gameButtonTable.add(homeButton);
+		if (game.getMode() < OthelloConstants.GameMode.ONLINE_LOCAL_PLAYER) {
 			gameButtonTable.add(saveButton).padLeft(10);
 			gameButtonTable.add(backButton).padLeft(10);
 		}
