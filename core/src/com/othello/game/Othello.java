@@ -734,6 +734,8 @@ public class Othello extends ApplicationAdapter {
 	}
 
 	public void initHUD() {
+		if (gameStage != null)
+			gameStage.dispose();
 		dialog0Removed = false;
 
 		gameStage = new Stage();
