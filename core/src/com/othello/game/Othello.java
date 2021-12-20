@@ -904,13 +904,13 @@ public class Othello extends ApplicationAdapter {
 			boardClicked = false;
 			System.out.printf("Othello: addStep(%d, %d, %d)\n", boardClickPosition.getX(), boardClickPosition.getY(), game.getNowPlay().getTurnColor());
 			Step thisStep = new Step(boardClickPosition, game.getNowPlay().getTurnColor());
+			if (!isMuted && game.getNowPlay().isValidPosition(boardClickPosition, game.getNowPlay().getTurnColor()))
+				chessSound1.play(0.1f);
 			if(game.getNowPlayer().getID() == 10)
 				server.update(thisStep);
 			if(game.getNowPlayer().getID() == 30)
 				client.update(thisStep);
 			game.getNowPlayer().addStep(thisStep);
-			if (!isMuted)
-				chessSound1.play(0.1f);
 			for (int i = 1; i <= 8; i++) {
 				for (int j = 1; j <= 8; j++)
 					System.out.printf("%d ", game.getNowPlayBoard()[i][j]);
