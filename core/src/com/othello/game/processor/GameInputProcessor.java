@@ -25,12 +25,9 @@ public class GameInputProcessor extends InputAdapter {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        System.out.printf("Touched: %d, %d\n", screenX, screenY);
         if (isInsideBoardBoundary(screenX, screenY)) {
             Othello.boardClicked = true;
             Othello.boardClickPosition = getPosition(screenX, screenY);
-            System.out.printf("Its in the boundary.Position: %d, %d\n",
-                    Othello.boardClickPosition.getX(), Othello.boardClickPosition.getY());
         }
         return true;
     }

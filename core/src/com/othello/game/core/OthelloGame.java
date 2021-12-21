@@ -158,7 +158,6 @@ public class OthelloGame implements Serializable {
             fileOut.close();
         } catch(IOException e) {
             e.printStackTrace();
-            System.out.println("Failed to save.");
             return false;
         }
         return true;
@@ -178,13 +177,11 @@ public class OthelloGame implements Serializable {
             fileIn.close();
         } catch (IOException | ClassNotFoundException i) { // 未找到存档/存档损坏
             i.printStackTrace();
-            System.out.println("No an available save.");
             return null;
         }
         game.giveCoreToPlayer();
         game.nowPlay.setCheat(game.cheat);
         if(!game.check()) return null;
-        System.out.println("Saver passed checker.");
         return game;
     }
 
@@ -194,11 +191,8 @@ public class OthelloGame implements Serializable {
     }
 
     public boolean back() {
-        if(getNowPlayer().getLastPlayedBoard() == null) {
-            System.out.println("Failed to back");
+        if(getNowPlayer().getLastPlayedBoard() == null)
             return false;
-        }
-        System.out.println("Backed.");
         System.out.println(getNowPlayer());
         nowPlay.setBoard(getNowPlayer().getLastPlayedBoard());
         getNowPlayer().setLastPlayedBoard(null);

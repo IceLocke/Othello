@@ -225,8 +225,6 @@ public class Othello extends ApplicationAdapter {
 
 	// 渲染游戏界面
 	public void renderGame(){
-		System.out.println("Rendering");
-
 		// 更新玩家 ID
 		if (onlineRemotePlayerName == null) {
 			boolean nameUpdated = false;
@@ -280,7 +278,6 @@ public class Othello extends ApplicationAdapter {
 		// 游戏结束动画
 		if (game.getNowPlay().isOver()) {
 			// round over
-			System.out.printf("Over\n");
 			if (!dialog0Existed) {
 				dialog0Existed = true;
 				dialog0Removed = false;
@@ -300,7 +297,6 @@ public class Othello extends ApplicationAdapter {
 					}
 				});
 				dialog0.setPosition(540, 360);
-				System.out.println(game.getNowPlay().getWinner());
 				if (game.getNowPlay().getWinner() == game.getPlayer1().getColor())
 					dialog0.text(new Label(String.format("%s wins!", game.getPlayer1().getPlayerName()), skin)).pad(10, 10, 10, 10);
 				else if (game.getNowPlay().getWinner() == game.getPlayer2().getColor()){
@@ -358,10 +354,8 @@ public class Othello extends ApplicationAdapter {
 						// 翻转棋子
 						Disc disc = discList.getDiscAtPosition(i, j);
 						disc.rotate();
-					} else {
-						System.out.println("backed");
+					} else
 						clearBoard();
-					}
 				}
 				board[i][j] = newBoard[i][j];
 			}
@@ -592,7 +586,6 @@ public class Othello extends ApplicationAdapter {
 					joinServerButton.addListener(new ChangeListener() {
 						@Override
 						public void changed(ChangeEvent event, Actor actor) {
-							System.out.println("Clicked join button.");
 							Player p1 = new OnlinePlayer(40, "Remote(s)",
 									"data/skin/profile_photo.jpg", BLACK);
 							Player p2 = new LocalPlayer(30, player1TextField.getText(),
@@ -631,8 +624,6 @@ public class Othello extends ApplicationAdapter {
 					connectToServerButton.addListener(new ChangeListener() {
 						@Override
 						public void changed(ChangeEvent event, Actor actor) {
-							System.out.println("Clicked connect button.");
-							// for IceLocke: 这里改成从 inputServerIP 读捏
 							String[] splitIP = inputServerIP.getText().split(":");
 							String IP = splitIP[0];
 							int port = Integer.parseInt(splitIP[1]);
@@ -700,13 +691,11 @@ public class Othello extends ApplicationAdapter {
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
-					System.out.println("try to connect...");
 					server.connectWithClient();
 				}
 			}).start();
 			if(server.isConnected()) {
 				remotePlayerDisconnected = false;
-				System.out.println("Connected successfully.");
 				interfaceType = OthelloConstants.InterfaceType.GAME;
 				bgmId = bgm.loop(0.01f);
 				initHUD();
@@ -717,7 +706,6 @@ public class Othello extends ApplicationAdapter {
 		if(interfaceType == OthelloConstants.InterfaceType.ONLINE_REMOTE_PLAYER_WAITING) {
 			if(client.isConnected()) {
 				remotePlayerDisconnected = false;
-				System.out.println("Connected successfully.");
 				client.sendPlayerName(onlinePlayerName);
 				interfaceType = OthelloConstants.InterfaceType.GAME;
 				bgmId = bgm.loop(0.01f);
@@ -784,7 +772,6 @@ public class Othello extends ApplicationAdapter {
 				});
 				dialog.setPosition(540, 360);
 				if(!game.save(menuButtonType)) {
-					System.out.println("Failed to save...");
 					dialog.text(new Label("Error. Failed to save.", skin)).pad(10, 10, 10, 10);
 				}
 				gameStage.addActor(dialog);
@@ -888,11 +875,6 @@ public class Othello extends ApplicationAdapter {
 					aiIsThinking = false;
 				}
 			}).start();
-			for (int i = 1; i <= 8; i++) {
-				for (int j = 1; j <= 8; j++)
-					System.out.printf("%d ", game.getNowPlayBoard()[i][j]);
-				System.out.println();
-			}
 		} else if(game.getNowPlayer().getID() == 20) { // Online Client
 			Position position = server.receive();
 			if(position != null) game.getNowPlay().addStep(new Step(position, WHITE));
@@ -900,9 +882,7 @@ public class Othello extends ApplicationAdapter {
 			Position position = client.receive();
 			if(position != null) game.getNowPlay().addStep(new Step(position, BLACK));
 		} else if(boardClicked) {
-			System.out.printf("Othello: detected click, at position: %d %d\n", boardClickPosition.getX(), boardClickPosition.getY());
 			boardClicked = false;
-			System.out.printf("Othello: addStep(%d, %d, %d)\n", boardClickPosition.getX(), boardClickPosition.getY(), game.getNowPlay().getTurnColor());
 			Step thisStep = new Step(boardClickPosition, game.getNowPlay().getTurnColor());
 			if (!isMuted && game.getNowPlay().isValidPosition(boardClickPosition, game.getNowPlay().getTurnColor()))
 				chessSound1.play(0.1f);
@@ -911,11 +891,6 @@ public class Othello extends ApplicationAdapter {
 			if(game.getNowPlayer().getID() == 30)
 				client.update(thisStep);
 			game.getNowPlayer().addStep(thisStep);
-			for (int i = 1; i <= 8; i++) {
-				for (int j = 1; j <= 8; j++)
-					System.out.printf("%d ", game.getNowPlayBoard()[i][j]);
-				System.out.println();
-			}
 		}
 	}
 
@@ -928,8 +903,6 @@ public class Othello extends ApplicationAdapter {
 		batch.begin();
 		batch.draw(homeLoading, 0, 0);
 		batch.end();
-
-		System.out.println(Gdx.graphics.getDeltaTime());
 
 		/* --- 3D 部分初始化开始 --- */
 
@@ -1040,8 +1013,6 @@ public class Othello extends ApplicationAdapter {
 		chessSound1 = Gdx.audio.newSound(Gdx.files.internal("sound/chess_sound1.mp3"));
 		chessSound2 = Gdx.audio.newSound(Gdx.files.internal("sound/chess_sound2.mp3"));
 		bgm = Gdx.audio.newSound(Gdx.files.internal("sound/bgm.mp3"));
-
-		System.out.println(Gdx.graphics.getDeltaTime());
 	}
 
 	@Override

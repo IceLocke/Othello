@@ -1,6 +1,7 @@
 package com.othello.game.core;
 
 import static com.othello.game.utils.OthelloConstants.DiscType.*;
+
 import com.othello.game.utils.Position;
 import com.othello.game.utils.Step;
 
@@ -24,14 +25,14 @@ public abstract class OthelloCore implements Serializable {
     }
 
     public boolean check() {
-        if(board.length != 10) return false;
-        for(int i = 0; i <= 9; ++i)
-            if(board[i].length != 10) return false;
+        if (board.length != 10) return false;
+        for (int i = 0; i <= 9; ++i)
+            if (board[i].length != 10) return false;
         return turnColor == BLACK || turnColor == WHITE;
     }
 
     public void setBoard(int[][] board) {
-        for(int i = 1; i <= 8; ++i)
+        for (int i = 1; i <= 8; ++i)
             this.board[i] = board[i].clone();
     }
 
@@ -56,9 +57,9 @@ public abstract class OthelloCore implements Serializable {
     }
 
     public int getTurnColor() {
-        if(getValidPosition(turnColor).size() == 0)
+        if (getValidPosition(turnColor).size() == 0)
             reverseColor();
-        if(getValidPosition(turnColor).size() == 0)
+        if (getValidPosition(turnColor).size() == 0)
             over = true;
         return turnColor;
     }
@@ -68,22 +69,22 @@ public abstract class OthelloCore implements Serializable {
     }
 
     public boolean isValidPosition(Position position, int color) {
-        if(this.getBoard()[position.getX()][position.getY()] != BLANK)
+        if (this.getBoard()[position.getX()][position.getY()] != BLANK)
             return false;
-        if(cheat) return true;
+        if (cheat) return true;
         final int[] dx = {1, 1, 1, 0, 0, -1, -1, -1};
         final int[] dy = {1, 0, -1, 1, -1, 1, 0, -1};
         int x = position.getX();
         int y = position.getY();
-        for(int d = 0; d < 8; ++d) {
+        for (int d = 0; d < 8; ++d) {
             // 判断逻辑：往一个方向先走一步（确定至少能翻子），然后走到底（全翻过来），判断停止时是否停在一个同样颜色的棋子上
             int tx = x + dx[d], ty = y + dy[d];
-            if(tx >= 1 && tx <= 8 && ty >= 1 && ty <= 8 && getBoard()[tx][ty] + color == 0) {
-                while(tx >= 1 && tx <= 8 && ty >= 1 && ty <= 8 && getBoard()[tx][ty] + color == 0) {
+            if (tx >= 1 && tx <= 8 && ty >= 1 && ty <= 8 && getBoard()[tx][ty] + color == 0) {
+                while (tx >= 1 && tx <= 8 && ty >= 1 && ty <= 8 && getBoard()[tx][ty] + color == 0) {
                     tx += dx[d];
                     ty += dy[d];
                 }
-                if(tx >= 1 && tx <= 8 && ty >= 1 && ty <= 8 && getBoard()[tx][ty] == color)
+                if (tx >= 1 && tx <= 8 && ty >= 1 && ty <= 8 && getBoard()[tx][ty] == color)
                     return true;
             }
         }
@@ -92,9 +93,9 @@ public abstract class OthelloCore implements Serializable {
 
     public ArrayList<Position> getValidPosition(int color) {
         ArrayList<Position> validPosition = new ArrayList<>();
-        for(int i = 1; i <= 8; ++i)
-            for(int j = 1; j <= 8; ++j)
-                if(isValidPosition(new Position(i, j), color))
+        for (int i = 1; i <= 8; ++i)
+            for (int j = 1; j <= 8; ++j)
+                if (isValidPosition(new Position(i, j), color))
                     validPosition.add(new Position(i, j));
         return validPosition;
     }
@@ -106,21 +107,21 @@ public abstract class OthelloCore implements Serializable {
     public abstract boolean addStep(Step step);
 
     public boolean isOver() {
-        if(getValidPosition(BLACK).size() == 0 && getValidPosition(WHITE).size() == 0)
+        if (getValidPosition(BLACK).size() == 0 && getValidPosition(WHITE).size() == 0)
             over = true;
         return over;
     }
 
     public int getWinner() {
-        if(!over) return 0;
+        if (!over) return 0;
         int whitePoints = 0, blackPoints = 0;
-        for(int i = 1; i <= 8; ++i)
-            for(int j = 1; j <= 8; ++j)
-                if(board[i][j] == WHITE)
+        for (int i = 1; i <= 8; ++i)
+            for (int j = 1; j <= 8; ++j)
+                if (board[i][j] == WHITE)
                     ++whitePoints;
-                else if(board[i][j] == BLACK)
+                else if (board[i][j] == BLACK)
                     ++blackPoints;
-        if(whitePoints == blackPoints) return BLANK;
+        if (whitePoints == blackPoints) return BLANK;
         return whitePoints > blackPoints ? WHITE : BLACK;
     }
 
