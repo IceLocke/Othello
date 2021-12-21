@@ -1,4 +1,4 @@
-package com.othello.game.server;
+package com.othello.game.online;
 
 import com.badlogic.gdx.net.Socket;
 import com.othello.game.Othello;

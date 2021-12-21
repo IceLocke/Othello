@@ -39,8 +39,8 @@ import com.othello.game.player.OnlinePlayer;
 import com.othello.game.player.Player;
 import com.othello.game.processor.GameInputProcessor;
 import com.othello.game.processor.HomeInputProcessor;
-import com.othello.game.server.OnlineOthelloClient;
-import com.othello.game.server.OnlineOthelloServer;
+import com.othello.game.online.OnlineOthelloClient;
+import com.othello.game.online.OnlineOthelloServer;
 import com.othello.game.utils.*;
 
 import java.awt.*;
@@ -1023,7 +1023,7 @@ public class Othello extends ApplicationAdapter {
 			renderHome();
 		}
 	}
-	
+
 	@Override
 	public void dispose () {
 		modelBatch.dispose();
