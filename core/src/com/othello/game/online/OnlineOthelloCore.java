@@ -1,10 +1,6 @@
-package com.othello.game.server;
+package com.othello.game.online;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Net;
 import com.badlogic.gdx.net.Socket;
-import com.badlogic.gdx.net.SocketHints;
-import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.othello.game.Othello;
 import com.othello.game.utils.Position;
 import com.othello.game.utils.Step;
@@ -14,41 +10,29 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Scanner;
 
-public class OnlineOthelloClient {
-    private int port;
-    private String IP;
-    private Socket socket;
-    private DataOutputStream dataOutputStream;
-    private DataInputStream dataInputStream;
-    public OnlineOthelloClient(String IP, int port) {
-        this.IP = IP;
-        this.port = port;
-    }
+public class OnlineOthelloCore {
+    protected int port;
+    protected String IP;
+    protected Socket socket;
+    protected DataOutputStream dataOutputStream;
+    protected DataInputStream dataInputStream;
 
-    public void connectWithServer() {
-        try {
-            socket = Gdx.net.newClientSocket(Net.Protocol.TCP, IP, port, new SocketHints());
-            dataOutputStream = new DataOutputStream(socket.getOutputStream());
-            dataInputStream = new DataInputStream(socket.getInputStream());
-        } catch(NullPointerException | GdxRuntimeException e) {
-            socket = null;
-            e.printStackTrace();
-        }
+    public OnlineOthelloCore() {
     }
 
     public boolean isConnected() {
         return socket != null;
     }
 
-    private boolean isReceiving = false;
-    private boolean isReceived = false;
-    private Position lastReceived;
-    private String remoteName = null;
-    private int maximumRound = 0;
+    protected boolean isReceiving = false;
+    protected boolean isReceived = false;
+    protected Position lastReceived;
+    protected String remoteName = null;
+    protected int maximumRound = 0;
 
     public Position receive() {
-        if(isReceiving) return null;
-        else if(isReceived) {
+        if (isReceiving) return null;
+        else if (isReceived) {
             isReceived = false;
             return lastReceived;
         } else {
@@ -64,25 +48,21 @@ public class OnlineOthelloClient {
                     }
 
                     if (string.contains("#Step#")) {
-                        System.out.println("receive step");
                         Scanner scanner = new Scanner(string.split("#Step#")[1]);
                         int x = scanner.nextInt();
                         int y = scanner.nextInt();
-                        System.out.printf("%d %d\n", x, y);
                         lastReceived = new Position(x, y);
                         isReceiving = false;
                         isReceived = true;
                     }
 
                     if (string.contains("#Name#")) {
-                        System.out.println("receive name");
                         remoteName = string.split("#Name#")[1];
                         isReceiving = false;
                         isReceived = true;
                     }
 
                     if (string.contains("#Round#")) {
-                        System.out.println("receive name");
                         maximumRound = Integer.parseInt(string.split("#Round#")[1]);
                         isReceiving = false;
                         isReceived = true;
@@ -125,7 +105,8 @@ public class OnlineOthelloClient {
 
     public void disconnect() {
         try {
-            dataOutputStream.writeUTF("Disconnect");
+            if (dataOutputStream != null)
+                dataOutputStream.writeUTF("Disconnect");
         } catch (IOException e) {
             e.printStackTrace();
         }

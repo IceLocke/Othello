@@ -61,7 +61,6 @@ public class Disc {
             });
             if (rotateTimes == 1)
                 modelInstance.transform.rotate(new Vector3().set(1f, 0, 0), 180);
-            modelInstance.calculateTransforms();
         }
         else {
             animationController.setAnimation("disc|WhiteToBlack", new AnimationController.AnimationListener() {
@@ -76,8 +75,8 @@ public class Disc {
                 public void onLoop(AnimationController.AnimationDesc animation) {
                 }
             });
-            modelInstance.calculateTransforms();
         }
+        modelInstance.calculateTransforms();
         upColor = -upColor;
     }
 

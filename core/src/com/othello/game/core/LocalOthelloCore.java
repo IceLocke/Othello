@@ -18,14 +18,10 @@ public class LocalOthelloCore extends OthelloCore implements Serializable {
     }
 
     public boolean addStep(Step step) {
-        if(step.getColor() != super.turnColor) {
-            System.out.println("LocalOthelloCore: Wrong color!");
+        if(step.getColor() != super.turnColor)
             return false;
-        }
-        if(!isValidPosition(step.getPosition(), step.getColor())) {
-            System.out.println("LocalOthelloCore: Wrong step!!");
+        if(!isValidPosition(step.getPosition(), step.getColor()))
             return false;
-        }
         final int[] dx = {1, 1, 1, 0, 0, -1, -1, -1};
         final int[] dy = {1, 0, -1, 1, -1, 1, 0, -1};
         int x = step.getPosition().getX();

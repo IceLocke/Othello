@@ -1,6 +1,6 @@
 package com.othello.game.player;
 
-import com.othello.game.server.OnlineOthelloClient;
+import com.othello.game.online.OnlineOthelloClient;
 import com.othello.game.utils.Step;
 
 public class OnlinePlayer extends Player {
